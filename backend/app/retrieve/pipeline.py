@@ -30,6 +30,7 @@ from app.retrieve.audience import Role
 from app.retrieve.dense import Candidate
 from app.retrieve.fuse import FusedCandidate, reciprocal_rank_fusion
 from app.retrieve.rerank import RerankOutcome, rerank
+from app.retrieve.translate_query import TranslatedQuery, translate
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,14 @@ class RetrievalResult:
     rerank_outcome: RerankOutcome | None = None
     errors: list[str] = field(default_factory=list)
 
+    # Strategy B only (PRD §7.2). `strategy` is what actually ran, which is
+    # not always what was asked for: a rejected translation falls back to A,
+    # and an ablation that could not see that would credit B with A's numbers.
+    strategy: str = "A"
+    translation: TranslatedQuery | None = None
+    dense_translated: list[Candidate] = field(default_factory=list)
+    lexical_translated: list[Candidate] = field(default_factory=list)
+
     @property
     def dense_scores(self) -> dict[int, float]:
         """Dense similarity by chunk id -- what the score floor is compared against."""
@@ -53,9 +62,16 @@ class RetrievalResult:
 
     def summary(self) -> str:
         path = self.rerank_outcome.path if self.rerank_outcome else "none"
+        extra = ""
+        if self.strategy == "B":
+            translated = self.translation.lang if self.translation and self.translation.ok else "-"
+            extra = (
+                f" strategy=B->{translated} dense_t={len(self.dense_translated)} "
+                f"lexical_t={len(self.lexical_translated)}"
+            )
         return (
             f"lang={self.query.lang} dense={len(self.dense)} lexical={len(self.lexical)} "
-            f"fused={len(self.fused)} finalists={len(self.finalists)} rerank={path}"
+            f"fused={len(self.fused)} finalists={len(self.finalists)} rerank={path}{extra}"
         )
 
 
@@ -84,6 +100,57 @@ def _embed_query(provider: Provider, text: str, settings: Settings) -> list[floa
     return vector
 
 
+def _run_arms(
+    conn,
+    *,
+    result: RetrievalResult,
+    text: str,
+    lang: str,
+    institution_id: str,
+    role: Role | str,
+    provider: Provider,
+    settings: Settings,
+    label: str,
+) -> tuple[list[Candidate], list[Candidate]]:
+    """Run the dense and lexical arms for one query text.
+
+    Either arm may come back empty and that is not an error: the lexical arm
+    returning nothing on a cross-lingual query is the whole reason Strategy B
+    exists. A *failing* arm is recorded on the result and the other one
+    carries the search.
+    """
+    dense: list[Candidate] = []
+    lexical: list[Candidate] = []
+
+    vector = _embed_query(provider, text, settings)
+    if vector is None:
+        result.errors.append(f"{label}dense arm skipped: no query embedding")
+    else:
+        dense = dense_arm.search(
+            conn,
+            institution_id=institution_id,
+            role=role,
+            query_vector=vector,
+            limit=settings.retrieve_top_k,
+        )
+
+    try:
+        lexical = lexical_arm.search(
+            conn,
+            institution_id=institution_id,
+            role=role,
+            query=text,
+            limit=settings.retrieve_top_k,
+            query_lang=lang,
+        )
+    except Exception as exc:  # noqa: BLE001 -- one arm failing must not lose the other
+        logger.warning("%slexical arm failed: %s", label, exc)
+        result.errors.append(f"{label}lexical arm failed: {exc}")
+        conn.rollback()
+
+    return dense, lexical
+
+
 def retrieve(
     conn,
     *,
@@ -94,6 +161,7 @@ def retrieve(
     history: Sequence[Message] | None = None,
     settings: Settings | None = None,
     rerank_provider: Provider | None = None,
+    strategy: str | None = None,
 ) -> RetrievalResult:
     """Run the hybrid retrieval pipeline for one question.
 
@@ -101,36 +169,48 @@ def retrieve(
     function never filters a result list.
     """
     settings = settings or get_settings()
+    strategy = (strategy or settings.cross_lingual_strategy).upper()
     query = condense(question, history, provider=provider)
-    result = RetrievalResult(query=query)
+    result = RetrievalResult(query=query, strategy="A")
 
-    vector = _embed_query(provider, query.text, settings)
-    if vector is None:
-        result.errors.append("dense arm skipped: no query embedding")
-    else:
-        result.dense = dense_arm.search(
-            conn,
-            institution_id=institution_id,
-            role=role,
-            query_vector=vector,
-            limit=settings.retrieve_top_k,
-        )
+    result.dense, result.lexical = _run_arms(
+        conn,
+        result=result,
+        text=query.text,
+        lang=query.lang,
+        institution_id=institution_id,
+        role=role,
+        provider=provider,
+        settings=settings,
+        label="",
+    )
 
-    try:
-        result.lexical = lexical_arm.search(
-            conn,
-            institution_id=institution_id,
-            role=role,
-            query=query.text,
-            limit=settings.retrieve_top_k,
-            query_lang=query.lang,
-        )
-    except Exception as exc:  # noqa: BLE001 -- one arm failing must not lose the other
-        logger.warning("lexical arm failed: %s", exc)
-        result.errors.append(f"lexical arm failed: {exc}")
-        conn.rollback()
+    arms: dict[str, list[Candidate]] = {"dense": result.dense, "lexical": result.lexical}
 
-    result.fused = reciprocal_rank_fusion({"dense": result.dense, "lexical": result.lexical})
+    if strategy == "B":
+        # PRD §7.2 Strategy B. The translation is validated before it is used;
+        # a rejected one leaves `strategy` at "A", which is what actually ran.
+        variant = translate(query.text, provider=provider, source_lang=query.lang)
+        result.translation = variant
+        if variant.ok:
+            result.strategy = "B"
+            result.dense_translated, result.lexical_translated = _run_arms(
+                conn,
+                result=result,
+                text=variant.text,
+                lang=variant.lang,
+                institution_id=institution_id,
+                role=role,
+                provider=provider,
+                settings=settings,
+                label="translated ",
+            )
+            arms["dense_translated"] = result.dense_translated
+            arms["lexical_translated"] = result.lexical_translated
+        else:
+            result.errors.append(f"strategy B fell back to A: {variant.reason}")
+
+    result.fused = reciprocal_rank_fusion(arms)
     outcome = rerank(result.fused, query=query.text, provider=rerank_provider, settings=settings)
     result.rerank_outcome = outcome
     result.finalists = outcome.candidates

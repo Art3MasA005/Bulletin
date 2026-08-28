@@ -48,6 +48,18 @@ class Settings(BaseSettings):
     extraction_model: str = ""
     embedding_model: str = ""
 
+    # Comma-separated model ids to try when the primary one is rate-limited or
+    # unavailable. This exists because of a measured failure, not a hunch:
+    # `qwen/qwen3.8-flash` is served by exactly ONE provider (Alibaba), so when
+    # that provider's shared pool limits, OpenRouter has nowhere to route and
+    # every retry waits on the same saturated queue. A model served by many
+    # providers has no such single point of failure.
+    #
+    # Order matters — cheapest first. The fallback is tried immediately, with
+    # no backoff, because switching model is faster than waiting for a pool
+    # that is already full.
+    generation_model_fallbacks: str = ""
+
     # ── Supabase (Phase 1+) ─────────────────────────────────────────────────
     # The anon key is safe in the Flutter client under RLS (PRD 6); the service
     # key and the database URL (which carries a password) are server-only and
@@ -89,6 +101,14 @@ class Settings(BaseSettings):
     retrieve_top_k: int = 20
     rerank_top_k: int = 5
 
+    # Which cross-lingual strategy the pipeline runs (PRD §7.2, Ablation A).
+    # "A" trusts the shared embedding space -- verified for baai/bge-m3 in
+    # eval/reports/crosslingual_check.md. "B" additionally translates the
+    # query and runs both arms again, buying back the lexical arm at the cost
+    # of one round trip. A setting rather than a literal because the ablation
+    # flips it; the default stays A until the ablation says otherwise.
+    cross_lingual_strategy: str = "A"
+
     # ── Limits (PRD §10) ────────────────────────────────────────────────────
     # Free-tier preservation presented as friendly caps, not product decisions.
     questions_per_day: int = 50
@@ -127,6 +147,22 @@ class Settings(BaseSettings):
             if url.endswith(suffix):
                 url = url[: -len(suffix)]
         return url
+
+    @property
+    def generation_chain(self) -> list[str]:
+        """The generation model, then its fallbacks, in the order to try them.
+
+        Always starts with `generation_model`, so a misconfigured fallback list
+        can degrade the answer but can never silently replace the model the
+        evaluation numbers were measured on. Duplicates and blanks are dropped
+        rather than retried.
+        """
+        chain = [self.require("generation_model")]
+        for candidate in self.generation_model_fallbacks.split(","):
+            model = candidate.strip()
+            if model and model not in chain:
+                chain.append(model)
+        return chain
 
     @property
     def corpus_path(self) -> Path:
