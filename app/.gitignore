@@ -46,3 +46,7 @@ app.*.map.json
 
 # Client build config generated from .env — carries the anon key.
 dart_defines.env
+
+# Gradle build output — a problems-report.html slipped in once.
+android/build/
+android/.gradle/
