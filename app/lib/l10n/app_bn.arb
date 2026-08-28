@@ -1,0 +1,225 @@
+{
+  "@@locale": "bn",
+  "@@x-source": "Copy lifted from the handoff prototype's T map (Bulletin.dc.html). Written natively, never machine-translated (DESIGN §9).",
+  "appTitle": "বুলেটিন",
+  "tagline": "আপনার প্রতিষ্ঠানের নোটিশ — প্রশ্ন করুন, প্রমাণসহ উত্তর পান।",
+  "signInAction": "সাইন ইন",
+  "emailLabel": "ইমেইল",
+  "passwordLabel": "পাসওয়ার্ড",
+  "showPassword": "দেখান",
+  "hidePassword": "লুকান",
+  "joinCode": "ইনভাইট কোড দিয়ে যোগ দিন",
+  "signUpAction": "অ্যাকাউন্ট তৈরি করুন",
+  "signOutAction": "সাইন আউট",
+  "joinTitle": "আপনার প্রতিষ্ঠানে যোগ দিন",
+  "joinSubtitle": "প্রতিষ্ঠান থেকে পাওয়া ইনভাইট কোডটি লিখুন।",
+  "inviteCodeLabel": "ইনভাইট কোড",
+  "joinAction": "যোগ দিন",
+  "greetingMorning": "শুভ সকাল, {name}",
+  "@greetingMorning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingAfternoon": "শুভ অপরাহ্ন, {name}",
+  "@greetingAfternoon": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingEvening": "শুভ সন্ধ্যা, {name}",
+  "@greetingEvening": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingPlain": "কী জানতে চান?",
+  "publishedDocuments": "{count, plural, one{১টি প্রকাশিত নথি} other{{count}টি প্রকাশিত নথি}}",
+  "@publishedDocuments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tryAsking": "জিজ্ঞাসা করে দেখুন",
+  "suggestExamStart": "চূড়ান্ত পরীক্ষা কবে শুরু হবে?",
+  "suggestMakeupFee": "মেকআপ পরীক্ষার ফি কত?",
+  "suggestHoliday": "এই সপ্তাহে কি বিশ্ববিদ্যালয় বন্ধ?",
+  "suggestEvaluation": "শিক্ষক মূল্যায়ন কবে খোলা থাকবে?",
+  "suggestHostelBn": "ছাত্রাবাসের নিয়ম কী?",
+  "suggestExamBn": "When do the final examinations start?",
+  "askHome": "আপনার ক্যাম্পাসের নথি নিয়ে প্রশ্ন করুন",
+  "askFollowUp": "আরেকটি প্রশ্ন করুন",
+  "sendAction": "পাঠান",
+  "attachTitle": "ফাইল যুক্ত করুন",
+  "attachCamera": "ক্যামেরা",
+  "attachGallery": "ছবির গ্যালারি",
+  "attachFiles": "ফাইল",
+  "attachNote": "ফাইলটি শুধু এই প্রশ্নের উত্তর দিতে পড়া হয়। প্রতিষ্ঠানের নথিতে এটি যোগ করা হয় না।",
+  "attachAction": "যুক্ত করুন",
+  "removeAttachment": "সরান",
+  "uploading": "আপলোড হচ্ছে…",
+  "openPage": "পৃষ্ঠা দেখুন {page}",
+  "@openPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "pageLabel": "পৃষ্ঠা {page}",
+  "@pageLabel": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "pageOfPages": "পৃষ্ঠা {page} / {total}",
+  "@pageOfPages": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "visionRead": "ভিশন রিড",
+  "moreSources": "{count, plural, one{আরও ১টি সূত্র} other{আরও {count}টি সূত্র}}",
+  "@moreSources": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notFoundTitle": "কোনো সূত্র পাওয়া যায়নি",
+  "notFoundBody": "প্রকাশিত নথিতে এ বিষয়ে কিছু পাওয়া যায়নি। প্রশ্নটি অন্যভাবে লিখুন, বা অফিসে জিজ্ঞাসা করুন।",
+  "rephrase": "অন্যভাবে লিখুন",
+  "askInBangla": "বাংলায় জিজ্ঞাসা করুন",
+  "askInEnglish": "ইংরেজিতে জিজ্ঞাসা করুন",
+  "scopeNoteStudent": "শুধু ছাত্রছাত্রীদের জন্য প্রকাশিত নথি থেকে উত্তর দেওয়া হয়েছে।",
+  "scopeNoteTeacher": "শুধু শিক্ষকদের জন্য প্রকাশিত নথি থেকে উত্তর দেওয়া হয়েছে।",
+  "scopeNoteAdmin": "সব প্রকাশিত নথি থেকে উত্তর দেওয়া হয়েছে।",
+  "readingRoutine": "আপনার রুটিন পড়া হচ্ছে…",
+  "foundCourses": "{count, plural, one{আপনার রুটিনে ১টি কোর্স পাওয়া গেছে। প্রয়োজনে ঠিক করে নিন।} other{আপনার রুটিনে {count}টি কোর্স পাওয়া গেছে। প্রয়োজনে ঠিক করে নিন।}}",
+  "@foundCourses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checkThisOne": "এটি যাচাই করুন — আত্মবিশ্বাস কম · {score}",
+  "@checkThisOne": {
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "addCourse": "যোগ করুন",
+  "confirmCta": "ঠিক আছে — আমার পরীক্ষা খুঁজুন",
+  "extractionFailed": "এই ফাইল থেকে কোর্সগুলো পড়া যায়নি। হাতে লিখে যোগ করুন।",
+  "documentsTitle": "নথি",
+  "documentsEmpty": "এখনো কিছু প্রকাশ করা হয়নি।",
+  "publishDocument": "নথি প্রকাশ করুন",
+  "publishShort": "প্রকাশ",
+  "publishTitleLabel": "শিরোনাম",
+  "whoCanAsk": "কারা এ বিষয়ে জিজ্ঞাসা করতে পারবে",
+  "requiredLabel": "আবশ্যক",
+  "audienceEveryone": "সবাই",
+  "audienceStudents": "শুধু ছাত্রছাত্রী",
+  "audienceTeachers": "শুধু শিক্ষক",
+  "audienceAdmins": "শুধু অ্যাডমিন",
+  "audienceNote": "কে কখনো এই তথ্য উত্তরে দেখতে পাবে, তা এটিই নির্ধারণ করে। ডিফল্ট থেকে এটি ধরে নেওয়া হয় না।",
+  "statusReady": "প্রস্তুত",
+  "statusExtracting": "টেক্সট নেওয়া হচ্ছে",
+  "statusEmbedding": "এমবেডিং",
+  "statusQueued": "অপেক্ষমাণ",
+  "statusFailed": "ব্যর্থ",
+  "statusLowConfidence": "প্রস্তুত · লেখার গুণমান অনিশ্চিত",
+  "reviewPages": "পৃষ্ঠা যাচাই করুন",
+  "visionReread": "ভিশন দিয়ে আবার পড়ান",
+  "retryAction": "আবার চেষ্টা",
+  "deleteAction": "মুছে ফেলুন",
+  "pagesCount": "{count, plural, one{১ পৃষ্ঠা} other{{count} পৃষ্ঠা}}",
+  "@pagesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "docsCountShort": "{count, plural, one{১ নথি} other{{count} নথি}}",
+  "@docsCountShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTitle": "সেটিংস",
+  "interfaceLanguage": "ইন্টারফেসের ভাষা",
+  "languageEnglish": "English",
+  "languageBangla": "বাংলা",
+  "answerLangNote": "এখানে যা-ই নির্বাচন করুন, আপনি যে ভাষায় প্রশ্ন করবেন উত্তর সেই ভাষাতেই আসবে।",
+  "displayNameLabel": "প্রদর্শিত নাম",
+  "institutionLabel": "প্রতিষ্ঠান",
+  "questionsToday": "আজকের প্রশ্ন",
+  "chatHistory": "চ্যাট ইতিহাস",
+  "historyNote": "এই ডিভাইসে ও আপনার প্রাতিষ্ঠানিক অ্যাকাউন্টে রাখা হয়। মুছে ফেললে দুই জায়গা থেকেই মুছে যায়।",
+  "clearHistory": "ইতিহাস মুছুন",
+  "newQuestion": "নতুন প্রশ্ন",
+  "roleStudent": "ছাত্রছাত্রী",
+  "roleTeacher": "শিক্ষক",
+  "roleAdmin": "অ্যাডমিন",
+  "scopeLine": "{role} স্কোপ · {count} নথি",
+  "@scopeLine": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorOffline": "আপনি অফলাইনে আছেন। সংযোগ ফিরলে আবার চেষ্টা করুন।",
+  "errorGeneric": "কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।",
+  "errorSessionExpired": "আপনার সেশনের মেয়াদ শেষ। আবার সাইন ইন করুন।",
+  "errorQuotaQuestions": "আজকের প্রশ্নের সীমা শেষ। ২৪ ঘণ্টা পরে আবার শুরু হবে।",
+  "errorQuotaAttachments": "আজকের সংযুক্তির সীমা শেষ।",
+  "errorFileTooLarge": "ফাইলটি অনেক বড়। সীমা {limit} MB।",
+  "@errorFileTooLarge": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "errorNotAdmin": "শুধু প্রশাসকই নথি প্রকাশ করতে পারেন।",
+  "cancelAction": "বাতিল",
+  "closeAction": "বন্ধ করুন",
+  "retryLabel": "আবার চেষ্টা করুন",
+  "backLabel": "ফিরে যান",
+  "checkYourEmail": "প্রায় হয়ে গেছে — {email} ঠিকানায় পাঠানো লিঙ্কে ক্লিক করে সাইন ইন করুন।",
+  "@checkYourEmail": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "emailRequired": "আপনার ইমেইল ঠিকানা লিখুন।",
+  "passwordTooShort": "পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।"
+}

@@ -1,0 +1,93 @@
+name: bulletin
+description: "Ask your institution's documents, in English or Bangla, with citations."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State. CLAUDE.md: Riverpod for all state, no setState outside trivial
+  # local animation.
+  flutter_riverpod: ^2.5.1
+
+  # Auth and session persistence. The client holds the anon key only (PRD §6);
+  # every institutional read goes through the backend, never straight to
+  # Postgres, because the audience filter belongs in the retrieval query.
+  supabase_flutter: ^2.5.6
+
+  # Local cache of conversations and messages, so history opens offline.
+  drift: ^2.18.0
+  sqlite3_flutter_libs: ^0.5.20
+  path_provider: ^2.1.3
+  path: ^1.9.0
+
+  # HTTP + SSE. `http` alone cannot stream a response body incrementally;
+  # dio's ResponseType.stream can, which the chat endpoint requires.
+  dio: ^5.4.3+1
+
+  # The attach flow (DESIGN §6.4): camera, gallery, files.
+  image_picker: ^1.1.2
+  file_picker: ^8.0.6
+  # Client-side downscale before upload -- a 12 MP phone photo is 4 MB of
+  # nothing useful for reading a routine, and the limit is 10 MB.
+  flutter_image_compress: ^2.3.0
+
+  # The source viewer (DESIGN §6.5): a PDF opened at the cited page.
+  pdfrx: ^1.0.87
+
+  # Markdown in assistant messages.
+  flutter_markdown: ^0.7.3
+
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  drift_dev: ^2.18.0
+  build_runner: ^2.4.11
+
+  # Generates the launcher icons from assets/logo/app_icon.png. A dev-only
+  # tool, but it earns its place: the alternative is six hand-resized PNGs per
+  # platform committed with no record of where they came from, and no way to
+  # regenerate them when the mark changes.
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+
+  # Anek covers Latin and Bengali in one superfamily (DESIGN §3): English and
+  # Bangla in the same sentence share a design voice instead of colliding.
+  fonts:
+    # Variable fonts, one file per family: the weight axis is set at runtime
+    # with FontVariation (core/theme/typography.dart). Declaring the same file
+    # under several weights lets Flutter pick it for any requested weight and
+    # keeps the app under 2 MB of font data instead of six static cuts.
+    - family: AnekLatin
+      fonts:
+        - asset: assets/fonts/AnekLatin.ttf
+    - family: AnekBangla
+      fonts:
+        - asset: assets/fonts/AnekBangla.ttf
+    - family: PlexMono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexMono-Medium.ttf
+          weight: 500
+
+  generate: true
+
+flutter_launcher_icons:
+  image_path: "assets/logo/app_icon.png"
+  android: "ic_launcher"
+  ios: true
+  remove_alpha_ios: true
+  adaptive_icon_background: "#6A5AE0"
+  adaptive_icon_foreground: "assets/logo/app_icon.png"
