@@ -92,6 +92,7 @@ class Citation:
     n: int
     chunk_id: int
     doc_id: str
+    title: str | None
     page_no: int
     section: str | None
     lang: str
@@ -102,6 +103,7 @@ class Citation:
             "n": self.n,
             "chunk_id": self.chunk_id,
             "doc_id": self.doc_id,
+            "title": self.title,
             "page_no": self.page_no,
             "section": self.section,
             "lang": self.lang,
@@ -153,6 +155,7 @@ def build_context(candidates: Sequence[Candidate]) -> tuple[str, list[Citation]]
                 n=n,
                 chunk_id=candidate.chunk_id,
                 doc_id=candidate.doc_id,
+                title=candidate.doc_title,
                 page_no=candidate.page_no,
                 section=candidate.section,
                 lang=candidate.lang,

@@ -36,6 +36,11 @@ class Candidate:
     lang: str
     extraction_method: str
     score: float
+    # The published title, joined from `documents`. The Source Card (DESIGN §4)
+    # leads with it; without it the card falls back to the chunk's section
+    # heading, which on a scanned notice is a line of OCR noise. Defaulted so a
+    # candidate can still be built in a test without inventing a document.
+    doc_title: str | None = None
     arm: str = "dense"
 
 
@@ -51,8 +56,10 @@ select
     c.section,
     c.lang,
     c.extraction_method::text,
-    1 - (c.embedding <=> %(query_vec)s::vector) as similarity
+    1 - (c.embedding <=> %(query_vec)s::vector) as similarity,
+    d.title
 from chunks c
+join documents d on d.id = c.doc_id
 where c.institution_id = %(institution_id)s
   and c.audience = any(%(audiences)s)
 order by c.embedding <=> %(query_vec)s::vector
@@ -108,6 +115,7 @@ def search(
             lang=row[5],
             extraction_method=row[6],
             score=float(row[7]),
+            doc_title=row[8] if len(row) > 8 else None,
             arm="dense",
         )
         for row in rows

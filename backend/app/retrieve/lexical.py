@@ -83,8 +83,10 @@ select
     c.section,
     c.lang,
     c.extraction_method::text,
-    ts_rank(to_tsvector('english', c.content), q.query) as rank
-from chunks c, q
+    ts_rank(to_tsvector('english', c.content), q.query) as rank,
+    d.title
+from chunks c
+join documents d on d.id = c.doc_id, q
 where c.institution_id = %(institution_id)s
   and c.audience = any(%(audiences)s)
   and to_tsvector('english', c.content) @@ q.query
@@ -101,8 +103,10 @@ select
     c.section,
     c.lang,
     c.extraction_method::text,
-    similarity(c.content, %(query)s) as sim
+    similarity(c.content, %(query)s) as sim,
+    d.title
 from chunks c
+join documents d on d.id = c.doc_id
 where c.institution_id = %(institution_id)s
   and c.audience = any(%(audiences)s)
   and c.content %% %(query)s
@@ -178,6 +182,7 @@ def search(
             lang=row[5],
             extraction_method=row[6],
             score=float(row[7]),
+            doc_title=row[8] if len(row) > 8 else None,
             arm="lexical",
         )
         for row in rows

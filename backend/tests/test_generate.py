@@ -312,3 +312,28 @@ def test_answer_plan_is_inert_by_default() -> None:
     """A default-constructed plan cannot accidentally look grounded."""
     plan = AnswerPlan(grounded=False, query_lang="en")
     assert plan.messages == [] and plan.citations == []
+
+
+def test_a_citation_carries_the_document_title() -> None:
+    """DESIGN §4: the Source Card leads with the document's title.
+
+    Without it the card falls back to the chunk's section heading, which on a
+    scanned notice is a line of OCR noise -- "Date: 10'hAugust,2026" is what a
+    student actually saw on the emulator before this was carried through.
+    """
+    candidate = Candidate(
+        chunk_id=1,
+        doc_id="doc-1",
+        content="Final examinations begin on 12 December 2026.",
+        page_no=3,
+        section="Date: 10'hAugust,2026",
+        lang="en",
+        extraction_method="native_text",
+        score=0.8,
+        doc_title="Final Examination Notice, Summer 2026",
+    )
+
+    plan = plan_answer("when do finals start", [candidate], query_lang="en")
+    citation = plan.citations[0]
+    assert citation.title == "Final Examination Notice, Summer 2026"
+    assert citation.as_dict()["title"] == "Final Examination Notice, Summer 2026"

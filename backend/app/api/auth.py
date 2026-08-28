@@ -23,6 +23,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
+from datetime import timedelta
 
 import httpx
 import jwt
@@ -38,6 +39,14 @@ DEFAULT_AUDIENCE = "authenticated"
 
 # JWKS is fetched once and cached; a rotated key is picked up on cache expiry.
 _JWKS_TTL_SECONDS = 600
+
+# Tolerance for clock skew between Supabase (which stamps `iat`/`nbf`) and this
+# server. Measured, not guessed: with zero leeway, a freshly minted token was
+# rejected on an Android emulator with "The token is not yet valid (iat)" --
+# the issuer's clock was a few seconds ahead of the host's. Sixty seconds is
+# the usual allowance; it widens the window a stolen-and-replayed token is
+# valid in by a minute, against an `exp` measured in hours.
+CLOCK_SKEW_LEEWAY = timedelta(seconds=60)
 
 
 class AuthError(Exception):
@@ -109,6 +118,7 @@ def decode_token(token: str, settings: Settings | None = None) -> dict[str, obje
                 secret,
                 algorithms=["HS256"],
                 audience=DEFAULT_AUDIENCE,
+                leeway=CLOCK_SKEW_LEEWAY,
                 options={"require": ["exp", "sub"]},
             )
         signing_key = _jwks.client(jwks_url(settings)).get_signing_key_from_jwt(token)
@@ -117,8 +127,16 @@ def decode_token(token: str, settings: Settings | None = None) -> dict[str, obje
             signing_key.key,
             algorithms=["ES256", "RS256"],
             audience=DEFAULT_AUDIENCE,
+            leeway=CLOCK_SKEW_LEEWAY,
             options={"require": ["exp", "sub"]},
         )
+    except jwt.ImmatureSignatureError as exc:
+        # More skew than the leeway allows. Naming the clock is the difference
+        # between a five-minute fix and an afternoon of debugging auth.
+        logger.warning("token not yet valid; check the server clock: %s", exc)
+        raise AuthError(
+            "this device's clock is out of step with the server; check the time settings"
+        ) from exc
     except jwt.ExpiredSignatureError as exc:
         raise AuthError("session expired; sign in again") from exc
     except jwt.InvalidAudienceError as exc:

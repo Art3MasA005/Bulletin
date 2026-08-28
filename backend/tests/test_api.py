@@ -493,3 +493,49 @@ def test_the_daily_question_cap_refuses_before_any_retrieval(client_factory) -> 
     assert response.status_code == 429
     assert str(settings.questions_per_day) in response.json()["detail"]
     assert "messages" not in rows, "a refused question must not be stored"
+
+
+# ── clock skew (found on a real emulator, not in a unit test) ───────────────
+
+
+def test_a_token_issued_a_few_seconds_in_the_future_is_accepted() -> None:
+    """Supabase stamps `iat`; this server checks it against its own clock.
+
+    With zero leeway, a token minted seconds ago was rejected as "not yet
+    valid" because the issuer's clock ran slightly ahead — which reaches the
+    user as a login that silently does nothing.
+    """
+    import time
+
+    from app.api.auth import decode_token
+
+    settings = get_settings().model_copy(update={"supabase_jwt_secret": _secret()})
+    now = int(time.time())
+    token = jwt.encode(
+        {"sub": USER_ID, "aud": "authenticated", "iat": now + 20, "exp": now + 3600},
+        JWT_SECRET,
+        algorithm="HS256",
+    )
+
+    claims = decode_token(token, settings)
+    assert claims["sub"] == USER_ID
+
+
+def test_a_token_from_a_badly_wrong_clock_still_fails_with_a_useful_message() -> None:
+    """The leeway is a minute, not an open door."""
+    import time
+
+    import pytest
+
+    from app.api.auth import AuthError, decode_token
+
+    settings = get_settings().model_copy(update={"supabase_jwt_secret": _secret()})
+    now = int(time.time())
+    token = jwt.encode(
+        {"sub": USER_ID, "aud": "authenticated", "iat": now + 7200, "exp": now + 10800},
+        JWT_SECRET,
+        algorithm="HS256",
+    )
+
+    with pytest.raises(AuthError, match="clock"):
+        decode_token(token, settings)
