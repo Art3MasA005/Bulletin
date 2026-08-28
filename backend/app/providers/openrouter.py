@@ -208,20 +208,108 @@ class OpenRouterProvider(Provider):
     # ── generation ──────────────────────────────────────────────────────────
 
     def generate(self, messages: Sequence[Message], *, stream: bool = False) -> Iterator[str]:
-        model = self.settings.require("generation_model")
-        body = self._payload(
-            model=model,
-            messages=[m.model_dump() for m in messages],
-            stream=stream,
-        )
+        payloads = [
+            self._payload(
+                model=model,
+                messages=[m.model_dump() for m in messages],
+                stream=stream,
+            )
+            for model in self.settings.generation_chain
+        ]
         if not stream:
-            data = self._post("/chat/completions", body)
+            data = self._post_chain(payloads)
             yield _first_choice_text(data)
             return
-        yield from self._stream_completion(body)
+        yield from self._stream_completion(payloads)
 
-    def _stream_completion(self, body: dict[str, Any]) -> Iterator[str]:
-        """Yield token deltas from an SSE stream."""
+    def _post_chain(self, payloads: list[dict[str, Any]]) -> dict[str, Any]:
+        """Try each model in the chain, then back off and try the chain again.
+
+        The order matters and it is not the obvious one. A rate-limited model
+        is not slow, it is *unavailable*: sleeping two seconds and asking the
+        same saturated pool again is strictly worse than asking a different
+        model immediately. So the chain is exhausted first, at full speed, and
+        only then does the backoff start.
+        """
+        attempts = max(1, self.settings.provider_max_retries)
+        delay = RETRY_BASE_SECONDS
+        last: ProviderError | None = None
+
+        for attempt in range(1, attempts + 1):
+            for body in payloads:
+                try:
+                    return self._post_once("/chat/completions", body)
+                except ProviderError as exc:
+                    if not exc.retryable:
+                        raise
+                    last = exc
+                    logger.warning("model %s unavailable: %s", body.get("model"), exc)
+            if attempt == attempts:
+                break
+            wait = min((last.retry_after if last else None) or delay, RETRY_MAX_SECONDS)
+            logger.warning(
+                "whole model chain unavailable, backing off %.1fs (round %d/%d)",
+                wait,
+                attempt,
+                attempts,
+            )
+            time.sleep(wait)
+            delay *= 2
+
+        raise last or ProviderError("generation chain exhausted")
+
+    def _stream_completion(self, payloads: list[dict[str, Any]]) -> Iterator[str]:
+        """Stream an answer: try every model, then back off and try again.
+
+        Two rules, and both come from a failure that reached a user.
+
+        **The chain before the backoff.** `_post` has had backoff since ingest
+        needed it; the streaming path — the one every chat answer takes — had
+        none, so a single upstream 429 ended the answer as "could not be
+        completed". Backoff alone would not have been enough either:
+        `qwen/qwen3.8-flash` has exactly one provider, so waiting only queues
+        for the same full pool. A second model is the fix; the sleep is the
+        last resort.
+
+        **Never after the first token.** A stream cannot be replayed. Retrying
+        once deltas have reached the phone would restart the answer and the
+        user would watch it write itself twice — so past that point the
+        failure is terminal and the client's "try again" is the right remedy.
+        """
+        attempts = max(1, self.settings.provider_max_retries)
+        delay = RETRY_BASE_SECONDS
+        last: ProviderError | None = None
+
+        for attempt in range(1, attempts + 1):
+            for body in payloads:
+                emitted = False
+                try:
+                    for delta in self._stream_once(body):
+                        emitted = True
+                        yield delta
+                    return
+                except ProviderError as exc:
+                    if emitted or not exc.retryable:
+                        raise
+                    last = exc
+                    logger.warning("model %s unavailable: %s", body.get("model"), exc)
+
+            if attempt == attempts:
+                break
+            wait = min((last.retry_after if last else None) or delay, RETRY_MAX_SECONDS)
+            logger.warning(
+                "whole model chain unavailable, backing off %.1fs (round %d/%d)",
+                wait,
+                attempt,
+                attempts,
+            )
+            time.sleep(wait)
+            delay *= 2
+
+        raise last or ProviderError("generation chain exhausted")
+
+    def _stream_once(self, body: dict[str, Any]) -> Iterator[str]:
+        """Yield token deltas from one SSE stream attempt."""
         try:
             with self.client.stream("POST", "/chat/completions", json=body) as response:
                 if response.status_code >= 400:
