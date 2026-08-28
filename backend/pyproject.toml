@@ -1,0 +1,54 @@
+[project]
+name = "bulletin-backend"
+version = "0.1.0"
+description = "Bulletin — cross-lingual RAG over institutional documents"
+requires-python = ">=3.11"
+
+dependencies = [
+  # PDF text + font-table inspection + page rendering (ingest/extract.py, vision.py)
+  "pymupdf>=1.24",
+  # Typed boundaries everywhere per CLAUDE.md; settings from env, no literals
+  "pydantic>=2.7",
+  "pydantic-settings>=2.2",
+  # OpenRouter transport; async + streaming for SSE in Phase 2
+  "httpx>=0.27",
+  # Bangla Unicode normalization — the single source of truth wraps this
+  "bnunicodenormalizer>=0.1.6",
+  # Legacy Bijoy/SutonnyMJ ASCII-map -> Unicode. Hand-rolling this table is a
+  # multi-week correctness risk; this package handles i-kar reordering, reph,
+  # and split vowels correctly (verified against real circular text).
+  "bijoy2unicode>=0.1.1",
+]
+
+[project.optional-dependencies]
+api = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.29",
+  "python-multipart>=0.0.9",
+  # Verifies Supabase access tokens. Supabase signs with ES256/RS256 and
+  # publishes a JWKS, so the [crypto] extra (cryptography) is required; without
+  # it PyJWT can only do HMAC and every asymmetric token fails to verify.
+  "pyjwt[crypto]>=2.8",
+  # The database is a pooler in another region: a fresh TLS handshake per
+  # request costs more than the query. Connection reuse is not an optimization
+  # here, it is most of the request budget.
+  "psycopg[binary]>=3.1",
+  "psycopg-pool>=3.2",
+]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4", "black>=24.0"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
