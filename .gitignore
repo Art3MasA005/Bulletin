@@ -19,6 +19,17 @@ corpus/
 eval/reports/*
 !eval/reports/.gitkeep
 
+# The measured reports ARE the evidence behind the README's claims, so they
+# ship. Everything else under reports/ does not.
+!eval/reports/*.md
+
+# Never these three: they hold raw extracted page text, and this corpus
+# includes disciplinary notices that name students and print their IDs.
+# A public repo is exactly the wrong place for that.
+eval/reports/checkpoints/
+eval/reports/chunks.jsonl
+eval/reports/extraction_samples.html
+
 # Flutter
 app/.dart_tool/
 app/build/
