@@ -264,7 +264,6 @@ eval/
   verify_crosslingual.py    the Strategy A premise check
   compare_generation_models.py
 app/lib/                    Flutter — core/, features/, l10n/
-docs/                       PRD.md, DESIGN.md
 ```
 
 ~7,300 lines of backend Python, ~5,800 lines of Dart, ~5,400 lines of tests.
