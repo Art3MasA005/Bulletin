@@ -517,6 +517,114 @@ abstract final class BulletinText {
     color: BulletinColors.ink,
   );
 
+  /// The user's bubble: 15 / 400 / 1.55.
+  static const userBubbleText = TextStyle(
+    fontFamily: Fonts.latin,
+    fontSize: 15,
+    height: 1.55,
+    fontWeight: FontWeight.w400,
+    fontVariations: Weights.regular,
+    color: BulletinColors.ink,
+  );
+
+  /// An answer: 16 / 400 / 1.65, no bubble (CHANGES.md).
+  static const answerBody = TextStyle(
+    fontFamily: Fonts.latin,
+    fontSize: 16,
+    height: 1.65,
+    fontWeight: FontWeight.w400,
+    fontVariations: Weights.regular,
+    color: BulletinColors.ink,
+  );
+
+  /// "Bulletin" over an answer: 13 / 600 / 1.
+  static const assistantName = TextStyle(
+    fontFamily: Fonts.latin,
+    fontSize: 13,
+    height: 1,
+    fontWeight: FontWeight.w600,
+    fontVariations: Weights.semiBold,
+    color: BulletinColors.ink,
+  );
+
+  /// A working step, and the not-found text and a snippet: 14 / 400 / 1.45.
+  static const stepLabel = TextStyle(
+    fontFamily: Fonts.latin,
+    fontSize: 14,
+    height: 1.45,
+    fontWeight: FontWeight.w400,
+    fontVariations: Weights.regular,
+    color: BulletinColors.inkBody,
+  );
+
+  /// "SOURCES": 12 / 600 / 1, +.04em, uppercase.
+  static const sourcesHeader = TextStyle(
+    fontFamily: Fonts.latin,
+    fontSize: 12,
+    height: 1,
+    letterSpacing: 0.48,
+    fontWeight: FontWeight.w600,
+    fontVariations: Weights.semiBold,
+    color: BulletinColors.muted,
+  );
+
+  /// A source's number, page and language pills: 12 / 500, mono.
+  static const sourceMono = TextStyle(
+    fontFamily: Fonts.mono,
+    fontSize: 12,
+    height: 1,
+    fontWeight: FontWeight.w500,
+    color: BulletinColors.inkBody,
+  );
+
+  /// An opened source's snippet: 14 / 400 / 1.65.
+  static const snippet = TextStyle(
+    fontFamily: Fonts.latin,
+    fontSize: 14,
+    height: 1.65,
+    fontWeight: FontWeight.w400,
+    fontVariations: Weights.regular,
+    color: BulletinColors.inkBody,
+  );
+
+  /// "Open page 3" on its orange pill, "N more sources": 14 / 600 and 13 / 600.
+  static const pillAction = TextStyle(
+    fontFamily: Fonts.latin,
+    fontSize: 14,
+    height: 1.2,
+    fontWeight: FontWeight.w600,
+    fontVariations: Weights.semiBold,
+    color: BulletinColors.white,
+  );
+  static const moreSources = TextStyle(
+    fontFamily: Fonts.latin,
+    fontSize: 13,
+    height: 1.2,
+    fontWeight: FontWeight.w600,
+    fontVariations: Weights.semiBold,
+    color: BulletinColors.brandText,
+  );
+
+  /// The not-found text: 15 / 400 / 1.6.
+  static const notFoundText = TextStyle(
+    fontFamily: Fonts.latin,
+    fontSize: 15,
+    height: 1.6,
+    fontWeight: FontWeight.w400,
+    fontVariations: Weights.regular,
+    color: BulletinColors.inkBody,
+  );
+
+  /// The offline banner: 14 / 400 / 1.5.
+  static const bannerText = TextStyle(
+    fontFamily: Fonts.latin,
+    fontSize: 14,
+    height: 1.5,
+    fontWeight: FontWeight.w400,
+    fontVariations: Weights.regular,
+    color: BulletinColors.ink,
+  );
+
   /// 12 / 400 / 1.4
   static const meta = TextStyle(
     fontFamily: Fonts.latin,

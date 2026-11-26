@@ -615,4 +615,29 @@ class LEn extends L {
 
   @override
   String get sheetHandleLabel => 'Close';
+
+  @override
+  String get sourcesHeader => 'Sources';
+
+  @override
+  String get stepSearching => 'Searching documents…';
+
+  @override
+  String stepReadCourses(int count) {
+    return 'Read $count courses from your routine';
+  }
+
+  @override
+  String get offlineBanner => 'You\'re offline. Answers need a connection.';
+
+  @override
+  String get notSentOffline => 'Not sent. You\'re offline.';
+
+  @override
+  String get retryMessage => 'Retry';
+
+  @override
+  String sourceExpandLabel(String title, String page) {
+    return '$title, $page';
+  }
 }

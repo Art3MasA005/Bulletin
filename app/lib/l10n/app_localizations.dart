@@ -1124,6 +1124,48 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Close'**
   String get sheetHandleLabel;
+
+  /// No description provided for @sourcesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get sourcesHeader;
+
+  /// No description provided for @stepSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching documents…'**
+  String get stepSearching;
+
+  /// No description provided for @stepReadCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Read {count} courses from your routine'**
+  String stepReadCourses(int count);
+
+  /// No description provided for @offlineBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline. Answers need a connection.'**
+  String get offlineBanner;
+
+  /// No description provided for @notSentOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent. You\'re offline.'**
+  String get notSentOffline;
+
+  /// No description provided for @retryMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retryMessage;
+
+  /// No description provided for @sourceExpandLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{title}, {page}'**
+  String sourceExpandLabel(String title, String page);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

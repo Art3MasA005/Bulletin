@@ -31,6 +31,8 @@ class ChatMessage {
     this.status = AnswerStatus.answered,
     this.attachmentId,
     this.errorDetail,
+    this.readCourses,
+    this.notSent = false,
   });
 
   /// A locally created message, before the server has given it an id.
@@ -41,11 +43,15 @@ class ChatMessage {
     attachmentId: attachmentId,
   );
 
-  factory ChatMessage.pending() => ChatMessage(
+  /// The answer being waited for. [readCourses] is how many courses the
+  /// user confirmed from a routine photo, shown as a finished step above the
+  /// active "Searching documents" one.
+  factory ChatMessage.pending({int? readCourses}) => ChatMessage(
     id: 'pending-${DateTime.now().microsecondsSinceEpoch}',
     role: MessageRole.assistant,
     text: '',
     status: AnswerStatus.streaming,
+    readCourses: readCourses,
   );
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
@@ -65,10 +71,21 @@ class ChatMessage {
   /// The server's own wording for a failure, when it had one.
   final String? errorDetail;
 
+  /// Assistant: courses read from the attached routine, for the steps card.
+  final int? readCourses;
+
+  /// User: the question never reached the server because the phone is
+  /// offline. The bubble says so and offers Retry (CHANGES.md).
+  final bool notSent;
+
   bool get isUser => role == MessageRole.user;
   bool get isStreaming => status == AnswerStatus.streaming;
   bool get isNotFound => status == AnswerStatus.notFound;
   bool get hasFailed => status == AnswerStatus.failed;
+
+  /// An assistant message that has not produced a token yet: the thread shows
+  /// its steps card instead of text.
+  bool get isWorking => isStreaming && text.isEmpty;
 
   ChatMessage copyWith({
     String? id,
@@ -76,6 +93,7 @@ class ChatMessage {
     List<Citation>? citations,
     AnswerStatus? status,
     String? errorDetail,
+    bool? notSent,
   }) => ChatMessage(
     id: id ?? this.id,
     role: role,
@@ -84,5 +102,7 @@ class ChatMessage {
     status: status ?? this.status,
     attachmentId: attachmentId,
     errorDetail: errorDetail ?? this.errorDetail,
+    readCourses: readCourses,
+    notSent: notSent ?? this.notSent,
   );
 }

@@ -48,7 +48,7 @@
   "attachAction": "ফাইল যুক্ত করুন",
   "removeAttachment": "সরান",
   "uploading": "আপলোড হচ্ছে…",
-  "openPage": "পৃষ্ঠা দেখুন {page}",
+  "openPage": "পৃষ্ঠা {page} খুলুন",
   "@openPage": {
     "placeholders": {
       "page": {
@@ -76,7 +76,7 @@
     }
   },
   "visionRead": "ভিশন রিড",
-  "moreSources": "{count, plural, one{আরও ১টি সূত্র} other{আরও {count}টি সূত্র}}",
+  "moreSources": "{count, plural, one{আরও ১টি উৎস} other{আরও {count}টি উৎস}}",
   "@moreSources": {
     "placeholders": {
       "count": {
@@ -255,5 +255,12 @@
   "attachFilesSub": "PDF",
   "attachLimitBefore": "প্রতিটি ফাইল সর্বোচ্চ ",
   "attachLimitAfter": "।",
-  "sheetHandleLabel": "বন্ধ করুন"
+  "sheetHandleLabel": "বন্ধ করুন",
+  "sourcesHeader": "উৎস",
+  "stepSearching": "ডকুমেন্ট খোঁজা হচ্ছে…",
+  "stepReadCourses": "রুটিন থেকে {count}টি কোর্স পড়া হয়েছে",
+  "offlineBanner": "আপনি অফলাইনে আছেন। উত্তর পেতে ইন্টারনেট সংযোগ লাগবে।",
+  "notSentOffline": "পাঠানো যায়নি। আপনি অফলাইনে আছেন।",
+  "retryMessage": "আবার পাঠান",
+  "sourceExpandLabel": "{title}, {page}"
 }

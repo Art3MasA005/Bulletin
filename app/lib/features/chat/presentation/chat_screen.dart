@@ -10,8 +10,8 @@
 /// The thread is a reverse `ListView`: new messages appear at the bottom
 /// without a scroll animation to fight, and the list holds its position when
 /// the keyboard opens. `addAutomaticKeepAlives: false` because a long thread
-/// of settled messages does not need to stay alive off-screen. The thread's
-/// own restyle (bubbles, sources) is a later step (TASKS.md, Chat).
+/// of settled messages does not need to stay alive off-screen. The thread
+/// itself (bubbles, steps, sources) lives in `thread/`.
 library;
 
 import 'dart:async';
@@ -37,7 +37,8 @@ import '../domain/home_greeting.dart';
 import 'composer.dart';
 import 'home/home_top_bar.dart';
 import 'home/home_view.dart';
-import 'message_bubble.dart';
+import 'thread/chat_thread.dart';
+import 'thread/offline_banner.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({this.conversationId, this.openingQuestion, super.key});
@@ -64,6 +65,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// What an attachment row adds to the composer.
   static const _attachmentRow = 64.0;
+
+  /// What the offline banner pushes the first message down by.
+  static const _bannerRoom = 52.0;
 
   @override
   void initState() {
@@ -96,6 +100,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final attachments = ref.read(attachmentControllerProvider.notifier);
     var attachment = ref.read(attachmentControllerProvider);
 
+    // How many courses the routine photo gave, for the "Read N courses" step.
+    int? readCourses = attachment.staged == null
+        ? null
+        : attachment.extraction?.courses.length;
+
     if (attachment.staged != null) {
       // Still uploading: the server has not read the file, so there is nothing
       // to confirm yet. The send button is disabled in this state; this is the
@@ -115,6 +124,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           return;
         }
         attachment = ref.read(attachmentControllerProvider);
+        readCourses = codes.length;
       }
     }
 
@@ -126,6 +136,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             question,
             attachmentId: attachment.staged?.attachmentId,
             model: ref.read(currentModelProvider)?.key,
+            readCourses: readCourses,
           ),
     );
     // The attachment belongs to the question that carried it; the next one
@@ -208,37 +219,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       onAttach: () => unawaited(openAttachFlow(context, ref)),
                     ),
                   )
-                : ListView.builder(
+                : ChatThread(
+                    messages: state.messages,
+                    role: membership?.role ?? 'student',
                     controller: _scroll,
-                    reverse: true,
-                    addAutomaticKeepAlives: false,
-                    padding: EdgeInsets.fromLTRB(
-                      20,
-                      top + _barHeight + 20,
-                      20,
-                      composerTop + 40,
-                    ),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      return MessageBubble(
-                        key: ValueKey(message.id),
-                        message: message,
-                        role: membership?.role ?? 'student',
-                        onOpenSource: _openSource,
-                        onRetry: message.hasFailed
-                            ? () => ref
-                                  .read(
-                                    chatControllerProvider(
-                                      widget.conversationId,
-                                    ).notifier,
-                                  )
-                                  .retryLast()
-                            : null,
-                      );
-                    },
+                    topInset: top + _barHeight + 20 + (state.offline ? _bannerRoom : 0),
+                    bottomInset: composerTop + 40,
+                    onOpenSource: _openSource,
+                    onRetry: () => ref
+                        .read(chatControllerProvider(widget.conversationId).notifier)
+                        .retryLast(),
                   ),
           ),
+          if (state.offline && messages.isNotEmpty)
+            Positioned(
+              top: top + _barHeight + 12,
+              left: 20,
+              right: 20,
+              child: const OfflineBanner(),
+            ),
           Positioned(
             top: top,
             left: 16,

@@ -41,8 +41,10 @@ dependencies:
   # The source viewer (DESIGN §6.5): a PDF opened at the cited page.
   pdfrx: ^1.0.87
 
-  # Markdown in assistant messages.
+  # Markdown in assistant messages. `markdown` is already pulled in by it; it is
+  # named here because the streaming caret is a custom inline syntax.
   flutter_markdown: ^0.7.3
+  markdown: ^7.3.1
 
   intl: ^0.20.2
   shared_preferences: ^2.5.6

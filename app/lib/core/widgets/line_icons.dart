@@ -323,6 +323,49 @@ abstract final class LineIcons {
       ..lineTo(10, 17.5)
       ..lineTo(19, 7.5),
   );
+
+  /// circle 11,11 r6.5 + M20 20l-4.3-4.3M8.5 11h5 — a search that found nothing.
+  static final searchMinus = LineGlyph._(
+    (p) => p
+      ..addOval(Rect.fromCircle(center: const Offset(11, 11), radius: 6.5))
+      ..moveTo(20, 20)
+      ..lineTo(15.7, 15.7)
+      ..moveTo(8.5, 11)
+      ..lineTo(13.5, 11),
+  );
+
+  /// M7 17L17 7M9 7h8v8 — open the page.
+  static final arrowUpRight = LineGlyph._(
+    (p) => p
+      ..moveTo(7, 17)
+      ..lineTo(17, 7)
+      ..moveTo(9, 7)
+      ..lineTo(17, 7)
+      ..lineTo(17, 15),
+  );
+
+  /// M12 5v14M5 12h14 — reveal more.
+  static final plus = LineGlyph._(
+    (p) => p
+      ..moveTo(12, 5)
+      ..lineTo(12, 19)
+      ..moveTo(5, 12)
+      ..lineTo(19, 12),
+  );
+
+  /// M20 12a8 8 0 11-2.3-5.6M20 4v5h-5 — send again.
+  static final retry = LineGlyph._(
+    (p) => p
+      ..moveTo(20, 12)
+      ..arcToPoint(
+        const Offset(17.7, 6.4),
+        radius: const Radius.circular(8),
+        largeArc: true,
+      )
+      ..moveTo(20, 4)
+      ..lineTo(20, 9)
+      ..lineTo(15, 9),
+  );
 }
 
 class LineIcon extends StatelessWidget {

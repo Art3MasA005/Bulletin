@@ -210,6 +210,25 @@ abstract final class BulletinColors {
 
   /// A chip or button that is present but inert (nothing to send yet).
   static const inert = Color(0x38161412); // 0.22
+
+  /// The user's chat bubble (CHANGES.md, "Chat with answers").
+  static const userBubble = Color(0xFFFFE3D0);
+
+  /// Body copy inside chat cards: working steps, snippets, the not-found
+  /// text (#4A423D).
+  static const inkBody = Color(0xFF4A423D);
+
+  /// The working-steps card, the collapsed source rows (white .60) and the
+  /// not-found card (white .70).
+  static const threadCard = Color(0x99FFFFFF);
+  static const threadCardStrong = Color(0xB3FFFFFF);
+
+  /// A finished step's circle, and the halo round the active step's dot.
+  static const stepDone = Color(0xFFE2F1EA);
+  static const stepDotHalo = Color(0x29F26314); // rgba(242,99,20,.16)
+
+  /// An exam row's tile (#FBF8F5).
+  static const rowTile = Color(0xFFFBF8F5);
 }
 
 /// The three shadows in the system. Soft and low-contrast: the ambient
@@ -306,6 +325,23 @@ abstract final class BrandLifts {
   /// A white surface on canvas: `0 1 2 rgba(22,20,18,.06)`.
   static const hairline = <BoxShadow>[
     BoxShadow(color: Color(0x0F161412), blurRadius: 2, offset: Offset(0, 1)),
+  ];
+
+  /// An opened source row: `0 1 2 rgba(22,20,18,.05), 0 10 24 -14
+  /// rgba(22,20,18,.18)`.
+  static const sourceOpen = <BoxShadow>[
+    BoxShadow(color: Color(0x0D161412), blurRadius: 2, offset: Offset(0, 1)),
+    BoxShadow(
+      color: Color(0x2E161412),
+      blurRadius: 24,
+      spreadRadius: -14,
+      offset: Offset(0, 10),
+    ),
+  ];
+
+  /// The offline banner: `0 1 2 rgba(22,20,18,.08)`.
+  static const banner = <BoxShadow>[
+    BoxShadow(color: Color(0x14161412), blurRadius: 2, offset: Offset(0, 1)),
   ];
 }
 

@@ -338,5 +338,14 @@
   "attachFilesSub": "PDF",
   "attachLimitBefore": "Up to ",
   "attachLimitAfter": " per file.",
-  "sheetHandleLabel": "Close"
+  "sheetHandleLabel": "Close",
+  "sourcesHeader": "Sources",
+  "stepSearching": "Searching documents…",
+  "stepReadCourses": "Read {count} courses from your routine",
+  "@stepReadCourses": {"placeholders": {"count": {"type": "int"}}},
+  "offlineBanner": "You're offline. Answers need a connection.",
+  "notSentOffline": "Not sent. You're offline.",
+  "retryMessage": "Retry",
+  "sourceExpandLabel": "{title}, {page}",
+  "@sourceExpandLabel": {"placeholders": {"title": {"type": "String"}, "page": {"type": "String"}}}
 }

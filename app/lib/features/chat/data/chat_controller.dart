@@ -23,7 +23,12 @@ import '../domain/citation.dart';
 import '../domain/message.dart';
 
 class ChatState {
-  const ChatState({this.messages = const [], this.conversationId, this.sending = false});
+  const ChatState({
+    this.messages = const [],
+    this.conversationId,
+    this.sending = false,
+    this.offline = false,
+  });
 
   /// Oldest first. The view reverses for display.
   final List<ChatMessage> messages;
@@ -34,14 +39,20 @@ class ChatState {
 
   final bool sending;
 
+  /// The last question could not leave the phone. The thread shows a banner
+  /// until a question gets through again.
+  final bool offline;
+
   ChatState copyWith({
     List<ChatMessage>? messages,
     String? conversationId,
     bool? sending,
+    bool? offline,
   }) => ChatState(
     messages: messages ?? this.messages,
     conversationId: conversationId ?? this.conversationId,
     sending: sending ?? this.sending,
+    offline: offline ?? this.offline,
   );
 }
 
@@ -68,13 +79,18 @@ class ChatController extends StateNotifier<ChatState> {
     ];
   }
 
-  Future<void> send(String question, {String? attachmentId, String? model}) async {
+  Future<void> send(
+    String question, {
+    String? attachmentId,
+    String? model,
+    int? readCourses,
+  }) async {
     final trimmed = question.trim();
     if (trimmed.isEmpty || state.sending) return;
 
     final history = _history();
     _lastModel = model;
-    final pending = ChatMessage.pending();
+    final pending = ChatMessage.pending(readCourses: readCourses);
     state = state.copyWith(
       messages: [
         ...state.messages,
@@ -118,7 +134,8 @@ class ChatController extends StateNotifier<ChatState> {
     switch (event.event) {
       case 'meta':
         final id = event.data['conversation_id'] as String?;
-        if (id != null) state = state.copyWith(conversationId: id);
+        // The server answered, so the phone is online again.
+        state = state.copyWith(conversationId: id, offline: false);
 
       case 'citations':
         _update(
@@ -147,8 +164,26 @@ class ChatController extends StateNotifier<ChatState> {
         );
 
       case 'error':
-        _fail(messageId, event.data['detail'] as String?);
+        if (event.data['offline'] == true) {
+          _notSent(messageId);
+        } else {
+          _fail(messageId, event.data['detail'] as String?);
+        }
     }
+  }
+
+  /// The question never reached the server. The thread keeps the user's
+  /// bubble, marked "Not sent" with Retry, and drops the empty answer that
+  /// was waiting under it (CHANGES.md, "Chat with answers").
+  void _notSent(String pendingId) {
+    final messages = [...state.messages]..removeWhere((m) => m.id == pendingId);
+    for (var i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].isUser) {
+        messages[i] = messages[i].copyWith(notSent: true);
+        break;
+      }
+    }
+    state = state.copyWith(messages: messages, offline: true);
   }
 
   ChatMessage? _find(String id) {

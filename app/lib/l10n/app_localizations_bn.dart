@@ -146,7 +146,7 @@ class LBn extends L {
 
   @override
   String openPage(int page) {
-    return 'পৃষ্ঠা দেখুন $page';
+    return 'পৃষ্ঠা $page খুলুন';
   }
 
   @override
@@ -167,8 +167,8 @@ class LBn extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'আরও $countটি সূত্র',
-      one: 'আরও ১টি সূত্র',
+      other: 'আরও $countটি উৎস',
+      one: 'আরও ১টি উৎস',
     );
     return '$_temp0';
   }
@@ -615,4 +615,29 @@ class LBn extends L {
 
   @override
   String get sheetHandleLabel => 'বন্ধ করুন';
+
+  @override
+  String get sourcesHeader => 'উৎস';
+
+  @override
+  String get stepSearching => 'ডকুমেন্ট খোঁজা হচ্ছে…';
+
+  @override
+  String stepReadCourses(int count) {
+    return 'রুটিন থেকে $countটি কোর্স পড়া হয়েছে';
+  }
+
+  @override
+  String get offlineBanner => 'আপনি অফলাইনে আছেন। উত্তর পেতে ইন্টারনেট সংযোগ লাগবে।';
+
+  @override
+  String get notSentOffline => 'পাঠানো যায়নি। আপনি অফলাইনে আছেন।';
+
+  @override
+  String get retryMessage => 'আবার পাঠান';
+
+  @override
+  String sourceExpandLabel(String title, String page) {
+    return '$title, $page';
+  }
 }

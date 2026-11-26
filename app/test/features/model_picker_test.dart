@@ -3,6 +3,7 @@
 // when nothing is offered, the blur budget with the menu open, and Bangla at
 // 200%.
 import 'package:bulletin/features/chat/domain/model_choice.dart';
+import 'package:bulletin/features/chat/presentation/home/home_top_bar.dart';
 import 'package:bulletin/features/chat/presentation/home/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -105,8 +106,11 @@ void main() {
     await pumpHome(tester, offered: _offered);
     await askFirstSuggestion(tester);
     expect(find.byType(HomeView), findsNothing);
-    expect(find.text('Bulletin'), findsOneWidget);
-    expect(find.text('Gemma 4'), findsOneWidget);
+    // The pill names the app over the model; the answer below carries its own
+    // "Bulletin" header, so the pill is looked up inside the top bar.
+    final bar = find.byType(HomeTopBar);
+    expect(find.descendant(of: bar, matching: find.text('Bulletin')), findsOneWidget);
+    expect(find.descendant(of: bar, matching: find.text('Gemma 4')), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel('New chat'));
     await tester.pump();
