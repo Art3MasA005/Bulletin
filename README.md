@@ -77,6 +77,13 @@ throws across a layer.
   GPT-6.1 Terra (about ten times the cost, and labelled so), and DeepSeek V4.1 Flash. The server
   validates the key and refuses an unknown one with a 422 before spending a token. The menu
   adds no blur, because the budget is two `BackdropFilter`s per screen.
+- **Chat thread.** The user's question is a peach bubble; the answer has no bubble, under a panda
+  and the name. Before the first word a card shows what it is doing ("Searching documents…", and
+  "Read 4 courses from your routine" when a routine photo came first); then the text streams in with
+  a blinking caret. The sources arrive last, collapsed to one line each (number, title, page); a tap
+  opens one in place to the snippet in its own language and an "Open page" button, and "+ N more"
+  reveals the rest. A refusal is its own card with a "found nothing" icon, never styled as an answer.
+  Offline, the question stays in the thread marked "Not sent" with Retry, and a banner says why.
 - **Settings.** Pushed with a custom route (the screen below slides to -30% under a scrim,
   with an edge-swipe back that commits past 35% or 800 px/s). Interface language, display name
   saved through `PATCH /me`, institution and role, and sign out. The language and the model
@@ -95,11 +102,11 @@ gaps are named rather than hidden.
 | | |
 |---|---|
 | Backend pipeline, API, streaming | complete — 391 tests |
-| Flutter client | splash, auth, join, home, model picker, chat with citations, attachments, settings — 126 tests. Chat-thread redesign, source viewer and the admin screens pending |
+| Flutter client | splash, auth, join, home, model picker, the chat thread (working steps, streamed answer, collapsed sources, not-found, offline), attachments, settings — 138 tests. Source viewer and the admin screens pending |
 | Cross-lingual verification (Strategy A premise) | **measured — passes** |
 | Strategy B implementation | complete, 22 tests |
 | **Ablation A — the headline result** | **not run.** Blocked on a real bilingual corpus |
-| Corpus | live database: 15 public notices from one university (71 chunks). The measurements below were taken on an earlier set of 9 documents and 52 chunks. Both are too small, and collection is the active blocker |
+| Corpus | live database: 15 public notices from one university (69 chunks). The measurements below were taken on an earlier set of 9 documents and 52 chunks. Both are too small, and collection is the active blocker |
 
 The honest summary: the machinery is built and tested, and the one measurement that
 would make or break the whole approach has been taken and passed. The comparative
@@ -316,7 +323,7 @@ make ingest                   # full pipeline
 make eval                     # ablation tables → eval/reports/
 make test                     # 391 tests
 
-cd app && flutter run         # 126 tests via flutter test
+cd app && flutter run         # 138 tests via flutter test
 ```
 
 On Windows without `make`, `.\make.cmd <target>` takes the same names. The Flutter app reads
@@ -352,7 +359,7 @@ app/lib/                    Flutter
 docs/                       screenshots and the launch recording
 ```
 
-~9,000 lines of backend Python, ~12,900 lines of Dart, ~7,600 lines of tests.
+~9,000 lines of backend Python, ~13,800 lines of Dart, ~7,900 lines of tests.
 
 ---
 
@@ -361,9 +368,13 @@ docs/                       screenshots and the launch recording
 - **Ablation A**, the thesis result — blocked on a bilingual corpus
 - **Ablation B**, extraction paths on Bangla slices — same blocker
 - A corpus large enough for Recall@5 to mean something
-- Flutter: the chat thread still has the earlier design (the rest of the app is redesigned),
-  and the source viewer, admin document list and publish flow are pending
-- The source card previews raw extracted text. For a few scanned notices that text layer is
-  noisy, and the answer is right while the preview is not; the viewer will show the page itself
+- Flutter: the source viewer (the "Open page" button on a source) and the admin document list and
+  publish flow are pending
+- Exam rows inside an answer (a tile per course with its code and date) need the answer to carry
+  structured rows; today an answer is Markdown, so codes render as mono tiles inline
+- The default OCR quality floor (0.90) keeps the text layer of a scanned prose notice whose letterhead
+  is noisy, and that noise reached the source preview. For the demo corpus every notice was re-read
+  by vision (`BULLETIN_OCR_QUALITY_FLOOR=1.01`). Whether to raise the default is open, because it
+  changes what the eval measured
 - Deployment: no Dockerfile yet; cold-start and first-token latency unmeasured
 - Profiling on a real mid-range Android device
