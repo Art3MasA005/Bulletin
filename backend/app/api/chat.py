@@ -45,6 +45,7 @@ from app.api.conversations import (
 from app.api.deps import CallerDep, ConnDep, ProviderDep, SettingsDep
 from app.attachments.join import UnconfirmedJoin, build_join_plan, require_confirmation
 from app.attachments.schemas import ConfirmedEntities
+from app.config import UnknownModel
 from app.generate.answer import AnswerPlan, plan_answer, stream_answer
 from app.providers.base import Message, Provider, ProviderError
 from app.retrieve.pipeline import retrieve, retrieve_for_join
@@ -73,6 +74,20 @@ class ChatRequest(BaseModel):
     # Present only for the routine join. The attachment must already be
     # confirmed (CLAUDE.md #3); this endpoint refuses it otherwise.
     attachment_id: str | None = None
+    # A key from GET /models; omit for the default. Never a raw model id.
+    model: str | None = Field(default=None, max_length=40)
+
+
+class ModelOption(BaseModel):
+    key: str
+    name: str
+    maker: str
+    cost: str
+    default: bool
+
+
+class ModelsResponse(BaseModel):
+    models: list[ModelOption]
 
 
 def _sse(event: str, payload: dict) -> str:
@@ -111,6 +126,7 @@ def _stream(
     *,
     pool,
     conversation_id: str,
+    models: list[str] | None = None,
 ) -> Iterator[str]:
     """Serialize one answer as SSE, then persist it. Never raises."""
     yield _sse("meta", {"conversation_id": conversation_id, "query_lang": plan.query_lang})
@@ -133,7 +149,7 @@ def _stream(
 
     pieces: list[str] = []
     try:
-        for piece in stream_answer(plan, provider=provider, stream=True):
+        for piece in stream_answer(plan, provider=provider, stream=True, models=models):
             if piece:
                 pieces.append(piece)
                 yield _sse("delta", {"text": piece})
@@ -154,6 +170,19 @@ def _stream(
     yield _sse("done", {"status": "answered"})
 
 
+@router.get("/models", response_model=ModelsResponse)
+def models(caller: CallerDep, settings: SettingsDep) -> ModelsResponse:
+    """The models the picker offers. Empty when none are configured."""
+    del caller  # signed-in only; the list itself is the same for everyone
+    default = settings.generation_model
+    return ModelsResponse(
+        models=[
+            ModelOption(key=c.key, name=c.name, maker=c.maker, cost=c.cost, default=c.id == default)
+            for c in settings.generation_model_choices
+        ]
+    )
+
+
 @router.post("/chat")
 def chat(
     body: ChatRequest,
@@ -165,6 +194,16 @@ def chat(
 ) -> StreamingResponse:
     """Answer a question from the caller's institution, streamed."""
     history = [Message(role=t.role, content=t.content) for t in body.history]
+
+    # Before the quota is spent or anything retrieved: a stale client asking
+    # for a model that is gone learns it at once.
+    try:
+        chain = settings.chain_for(body.model) if body.model else None
+    except UnknownModel as exc:
+        raise HTTPException(
+            status_code=422,
+            detail="that model is no longer offered; pick another",
+        ) from exc
 
     # PRD 10, before any retrieval or model call.
     enforce_daily_quota(conn, user_id=caller.user_id, settings=settings)
@@ -229,12 +268,13 @@ def chat(
     )
 
     logger.info(
-        "chat user=%s institution=%s conversation=%s grounded=%s citations=%d",
+        "chat user=%s institution=%s conversation=%s grounded=%s citations=%d model=%s",
         caller.user_id,
         caller.institution_id,
         conversation_id,
         plan.grounded,
         len(plan.citations),
+        body.model or "default",
     )
     return StreamingResponse(
         _stream(
@@ -242,6 +282,7 @@ def chat(
             provider,
             pool=getattr(request.app.state, "pool", None),
             conversation_id=conversation_id,
+            models=chain,
         ),
         media_type="text/event-stream",
         headers={

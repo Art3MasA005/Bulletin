@@ -70,8 +70,18 @@ class Provider(ABC):
         """Cross-encoder relevance scores, one per doc, same order."""
 
     @abstractmethod
-    def generate(self, messages: Sequence[Message], *, stream: bool = False) -> Iterator[str]:
-        """Yield answer text. With stream=False, yields exactly one chunk."""
+    def generate(
+        self,
+        messages: Sequence[Message],
+        *,
+        stream: bool = False,
+        models: Sequence[str] | None = None,
+    ) -> Iterator[str]:
+        """Yield answer text. With stream=False, yields exactly one chunk.
+
+        `models` is the chain to try for this call (`Settings.chain_for`);
+        None means the configured default chain.
+        """
 
     @abstractmethod
     def read_page_image(self, png_bytes: bytes, *, lang_hint: str = "auto") -> str:

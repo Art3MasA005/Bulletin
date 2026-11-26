@@ -9,8 +9,9 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -18,6 +19,27 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 class ConfigError(RuntimeError):
     """Raised when a required setting is missing, naming the env var to set."""
+
+
+class UnknownModel(ValueError):
+    """The client asked for a model key that is not on the allow-list."""
+
+
+class ModelChoice(BaseModel):
+    """One generation model a user may pick (handoff README, model picker).
+
+    The client only ever sends `key`. `id` is the OpenRouter model id and stays
+    on the server: a model id taken straight from a request would let any
+    signed-in user run any model on the institution's bill.
+    """
+
+    key: str = Field(pattern=r"^[a-z0-9-]{1,40}$")
+    id: str
+    name: str
+    maker: str
+    # What the picker says about cost; the client words it. "high" is for a
+    # model that costs several times the default per answer.
+    cost: Literal["low", "high"] = "low"
 
 
 class Settings(BaseSettings):
@@ -59,6 +81,14 @@ class Settings(BaseSettings):
     # no backoff, because switching model is faster than waiting for a pool
     # that is already full.
     generation_model_fallbacks: str = ""
+
+    # The models a user may pick from in the app, as a JSON list of
+    # {"key", "id", "name", "maker"} (see .env.example). Empty hides the
+    # picker. Only the default model (`generation_model`) is measured by the
+    # eval; the score floor gates before any model is called, so the
+    # not-found boundary holds whichever is picked, but answer quality and
+    # refusal wording are only measured on the default.
+    generation_model_choices: list[ModelChoice] = Field(default_factory=list)
 
     # ── Supabase (Phase 1+) ─────────────────────────────────────────────────
     # The anon key is safe in the Flutter client under RLS (PRD 6); the service
@@ -163,6 +193,22 @@ class Settings(BaseSettings):
             if model and model not in chain:
                 chain.append(model)
         return chain
+
+    def chain_for(self, key: str | None) -> list[str]:
+        """The chain for one request: the picked model, then the usual chain.
+
+        No key means the default chain. A key off the allow-list raises
+        `UnknownModel` rather than quietly answering with the default, so a
+        stale client finds out instead of being told it got a model it did
+        not. The usual chain stays behind the pick, so a picked model that is
+        down still yields an answer.
+        """
+        if key is None:
+            return self.generation_chain
+        for choice in self.generation_model_choices:
+            if choice.key == key:
+                return [choice.id, *(m for m in self.generation_chain if m != choice.id)]
+        raise UnknownModel(key)
 
     @property
     def corpus_path(self) -> Path:

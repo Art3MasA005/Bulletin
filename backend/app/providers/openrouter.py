@@ -207,14 +207,20 @@ class OpenRouterProvider(Provider):
 
     # ── generation ──────────────────────────────────────────────────────────
 
-    def generate(self, messages: Sequence[Message], *, stream: bool = False) -> Iterator[str]:
+    def generate(
+        self,
+        messages: Sequence[Message],
+        *,
+        stream: bool = False,
+        models: Sequence[str] | None = None,
+    ) -> Iterator[str]:
         payloads = [
             self._payload(
                 model=model,
                 messages=[m.model_dump() for m in messages],
                 stream=stream,
             )
-            for model in self.settings.generation_chain
+            for model in (models or self.settings.generation_chain)
         ]
         if not stream:
             data = self._post_chain(payloads)

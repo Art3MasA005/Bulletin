@@ -289,7 +289,11 @@ def plan_answer(
 
 
 def stream_answer(
-    plan: AnswerPlan, *, provider: Provider | None = None, stream: bool = True
+    plan: AnswerPlan,
+    *,
+    provider: Provider | None = None,
+    stream: bool = True,
+    models: Sequence[str] | None = None,
 ) -> Iterator[str]:
     """Yield the answer text for a plan.
 
@@ -303,4 +307,7 @@ def stream_answer(
     if provider is None:
         raise NotGrounded("a grounded plan needs a provider to generate from")
 
-    yield from provider.generate(plan.messages, stream=stream)
+    if models is None:
+        yield from provider.generate(plan.messages, stream=stream)
+    else:
+        yield from provider.generate(plan.messages, stream=stream, models=models)

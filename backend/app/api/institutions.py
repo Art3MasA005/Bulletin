@@ -41,6 +41,20 @@ select i.name, p.role::text
 from profiles p join institutions i on i.id = p.institution_id
 where p.id = %(user_id)s
 """
+# What Home and Settings need beyond the caller: the name to greet, the
+# institution the answers come from, and the code the member joined with
+# (Settings shows it; every member already had it to get in).
+ME_DETAILS_SQL = """
+select p.display_name, i.name, i.invite_code
+from profiles p join institutions i on i.id = p.institution_id
+where p.id = %(user_id)s
+"""
+# Scoped by the caller's own id in the query: a member can only ever rename
+# themselves.
+UPDATE_DISPLAY_NAME_SQL = """
+update profiles set display_name = %(display_name)s
+where id = %(user_id)s
+"""
 CREATE_INSTITUTION_SQL = """
 insert into institutions (name, invite_code) values (%(name)s, %(code)s)
 returning id::text
@@ -77,6 +91,14 @@ class Me(BaseModel):
     institution_id: str
     role: str
     email: str | None = None
+    display_name: str | None = None
+    institution_name: str | None = None
+    invite_code: str | None = None
+
+
+class UpdateMe(BaseModel):
+    # Blank clears it, and the app falls back to the sign-up name.
+    display_name: str | None = Field(default=None, max_length=60)
 
 
 def invite_code() -> str:
@@ -205,11 +227,30 @@ def join_institution(
 
 
 @router.get("/me", response_model=Me, tags=["auth"])
-def me(caller: CallerDep) -> Me:
-    """The caller as the backend resolved them. Useful to the client on launch."""
+def me(caller: CallerDep, conn: ConnDep) -> Me:
+    """The caller as the backend resolved them, plus the names Home greets
+    with. Useful to the client on launch."""
+    with conn.cursor() as cur:
+        cur.execute(ME_DETAILS_SQL, {"user_id": caller.user_id})
+        row = cur.fetchone()
+    display_name, institution_name, code = row if row is not None else (None, None, None)
     return Me(
         user_id=caller.user_id,
         institution_id=caller.institution_id,
         role=caller.role.value,
         email=caller.email,
+        display_name=display_name,
+        institution_name=institution_name,
+        invite_code=code,
     )
+
+
+@router.patch("/me", response_model=Me)
+def update_me(body: UpdateMe, caller: CallerDep, conn: ConnDep) -> Me:
+    """Change the caller's display name (Settings). Blank clears it."""
+    name = (body.display_name or "").strip() or None
+    with conn.cursor() as cur:
+        cur.execute(UPDATE_DISPLAY_NAME_SQL, {"user_id": caller.user_id, "display_name": name})
+    conn.commit()
+    logger.info("profile renamed user=%s cleared=%s", caller.user_id, name is None)
+    return me(caller, conn)

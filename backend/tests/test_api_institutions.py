@@ -25,7 +25,14 @@ class InstitutionCursor:
     def execute(self, sql: str, params: dict | None = None) -> None:
         params = params or {}
         text = " ".join(sql.split())
-        if text.startswith("select i.name, p.role::text"):
+        if text.startswith("select p.display_name, i.name"):
+            self._result = self.state.get("me_details")
+        elif text.startswith("update profiles set display_name"):
+            self.state["renamed"] = params
+            details = self.state.get("me_details") or (None, None, None)
+            self.state["me_details"] = (params["display_name"], *details[1:])
+            self._result = None
+        elif text.startswith("select i.name, p.role::text"):
             self._result = self.state.get("membership")
         elif text.startswith("select id::text, name from institutions"):
             self.state["looked_up_code"] = params.get("code")
@@ -194,7 +201,52 @@ def test_me_reports_the_resolved_identity(client_for) -> None:
         "institution_id": INSTITUTION_ID,
         "role": "student",
         "email": "s@green.edu.bd",
+        "display_name": None,
+        "institution_name": None,
+        "invite_code": None,
     }
+
+
+def test_me_carries_the_names_home_greets_with(client_for) -> None:
+    client, _ = client_for(
+        {
+            "profile": (USER_ID, INSTITUTION_ID, "student", "s@green.edu.bd"),
+            "me_details": ("Nusrat", "Green University of Bangladesh", "GUB-7Q4K-20"),
+        }
+    )
+    body = client.get("/me", headers=auth()).json()
+    assert body["display_name"] == "Nusrat"
+    assert body["institution_name"] == "Green University of Bangladesh"
+    assert body["invite_code"] == "GUB-7Q4K-20"
+
+
+def test_a_member_renames_only_themselves(client_for) -> None:
+    client, pool = client_for(
+        {
+            "profile": (USER_ID, INSTITUTION_ID, "student", "s@green.edu.bd"),
+            "me_details": ("Nusrat", "Green University of Bangladesh", "GUB-7Q4K-20"),
+        }
+    )
+    response = client.patch("/me", json={"display_name": "  Nusrat J  "}, headers=auth())
+    assert response.status_code == 200
+    assert pool.state["renamed"] == {"user_id": USER_ID, "display_name": "Nusrat J"}
+    assert response.json()["display_name"] == "Nusrat J"
+
+
+def test_a_blank_display_name_clears_it(client_for) -> None:
+    client, pool = client_for(
+        {
+            "profile": (USER_ID, INSTITUTION_ID, "student", "s@green.edu.bd"),
+            "me_details": ("Nusrat", "Green University of Bangladesh", "GUB-7Q4K-20"),
+        }
+    )
+    client.patch("/me", json={"display_name": "   "}, headers=auth())
+    assert pool.state["renamed"]["display_name"] is None
+
+
+def test_renaming_needs_membership(client_for) -> None:
+    client, _ = client_for({"profile": None})
+    assert client.patch("/me", json={"display_name": "x"}, headers=auth()).status_code == 401
 
 
 def test_me_requires_membership(client_for) -> None:
