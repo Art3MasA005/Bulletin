@@ -112,6 +112,12 @@ void main() {
     expect(find.descendant(of: bar, matching: find.text('Bulletin')), findsOneWidget);
     expect(find.descendant(of: bar, matching: find.text('Gemma 4')), findsOneWidget);
 
+    // "New chat" sits right beside the menu button, not in the middle of the bar.
+    final newChat = tester.getRect(find.bySemanticsLabel('New chat'));
+    final menu = tester.getRect(find.bySemanticsLabel('Settings'));
+    expect(menu.left - newChat.right, 8, reason: 'the two round buttons are neighbours');
+    expect(menu.right, tester.view.physicalSize.width / tester.view.devicePixelRatio - 16);
+
     await tester.tap(find.bySemanticsLabel('New chat'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));

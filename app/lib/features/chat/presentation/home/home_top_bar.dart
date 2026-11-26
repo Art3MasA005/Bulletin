@@ -26,7 +26,7 @@ class HomeTopBar extends StatelessWidget {
   final VoidCallback onMenu;
 
   /// True once the first question is asked: the pill changes, and "New
-  /// chat" appears.
+  /// chat" appears (inert while an answer is being written).
   final bool inThread;
   final VoidCallback? onNewChat;
 
@@ -38,22 +38,31 @@ class HomeTopBar extends StatelessWidget {
       children: [
         Flexible(child: ModelPicker(inThread: inThread)),
         const SizedBox(width: Space.sm),
-        if (inThread && onNewChat != null) ...[
-          _RoundButton(
-            label: l.newChat,
-            onTap: onNewChat!,
-            child: LineIcon(LineIcons.pencil, color: BulletinColors.ink),
-          ),
-          const SizedBox(width: Space.sm),
-        ],
-        _RoundButton(
-          label: l.homeMenuLabel,
-          onTap: onMenu,
-          child: LineIcon(
-            LineIcons.dotsVertical,
-            color: BulletinColors.ink,
-            strokeWidth: 3.6,
-          ),
+        // Both round buttons sit together at the right edge: "New chat" first,
+        // then the menu. As separate children of the spaceBetween row, "New
+        // chat" would drift to the middle.
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: Space.sm,
+          children: [
+            // Kept in place while an answer is being written, only inert, so
+            // the bar does not jump when the first question is sent.
+            if (inThread)
+              _RoundButton(
+                label: l.newChat,
+                onTap: onNewChat,
+                child: LineIcon(LineIcons.pencil, color: BulletinColors.ink),
+              ),
+            _RoundButton(
+              label: l.homeMenuLabel,
+              onTap: onMenu,
+              child: LineIcon(
+                LineIcons.dotsVertical,
+                color: BulletinColors.ink,
+                strokeWidth: 3.6,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -61,10 +70,12 @@ class HomeTopBar extends StatelessWidget {
 }
 
 class _RoundButton extends StatelessWidget {
-  const _RoundButton({required this.label, required this.onTap, required this.child});
+  const _RoundButton({required this.label, required this.child, this.onTap});
 
   final String label;
-  final VoidCallback onTap;
+
+  /// Null makes the button inert: dimmed, and it takes no taps.
+  final VoidCallback? onTap;
   final Widget child;
 
   static const _round = BorderRadius.all(Radius.circular(24));
@@ -73,18 +84,22 @@ class _RoundButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
+      enabled: onTap != null,
       label: label,
       excludeSemantics: true,
-      child: PressScale.icon(
-        child: GestureDetector(
-          onTap: onTap,
-          behavior: HitTestBehavior.opaque,
-          child: SizedBox.square(
-            dimension: Sizes.minTouchTarget,
-            child: CrystalGlass(
-              borderRadius: _round,
-              blur: false,
-              child: Center(child: child),
+      child: Opacity(
+        opacity: onTap == null ? 0.45 : 1,
+        child: PressScale.icon(
+          child: GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox.square(
+              dimension: Sizes.minTouchTarget,
+              child: CrystalGlass(
+                borderRadius: _round,
+                blur: false,
+                child: Center(child: child),
+              ),
             ),
           ),
         ),
