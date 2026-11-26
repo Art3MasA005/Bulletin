@@ -4,10 +4,106 @@
 
 A bilingual (English/Bangla) retrieval system for university documents. An institution
 publishes its academic calendar, exam routines, fee schedules and notices once; students
-and teachers ask questions in either language — optionally attaching their own class
-routine — and get answers grounded strictly in those documents, with page-level citations.
+and teachers ask in either language — optionally attaching their own class routine — and
+get answers grounded strictly in those documents, with page-level citations. Below the
+retrieval score floor it says "not found" instead of inventing something.
 
 FastAPI + pgvector backend, Flutter client, measured against a 62-question gold set.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/media/splash.gif" alt="The launch animation: a panda peeks over a ledge, waves, and the wordmark appears" width="170"><br><sub>Launch</sub></td>
+    <td align="center"><img src="docs/screenshots/home.png" alt="Home: the model pill, the glowing orb, and a greeting" width="170"><br><sub>Home</sub></td>
+    <td align="center"><img src="docs/screenshots/model-menu.png" alt="The model menu with five models" width="170"><br><sub>Pick a model</sub></td>
+    <td align="center"><img src="docs/screenshots/chat-answer.png" alt="An answer with numbered citations and source cards" width="170"><br><sub>Cited answer</sub></td>
+    <td align="center"><img src="docs/screenshots/settings.png" alt="Settings: language, profile and institution" width="170"><br><sub>Settings</sub></td>
+  </tr>
+</table>
+
+---
+
+## Contents
+
+- [Highlights](#highlights)
+- [The app](#the-app)
+- [Status](#status)
+- [The thesis](#the-thesis)
+- [What has actually been measured](#what-has-actually-been-measured)
+- [Correctness boundaries](#correctness-boundaries)
+- [Findings](#findings)
+- [Architecture](#architecture)
+- [Stack](#stack)
+- [Running it](#running-it)
+- [Layout](#layout)
+- [What is not done](#what-is-not-done)
+
+## Highlights
+
+- **Answers with the page to prove them.** Every answer carries numbered citations that open
+  a source card with the document title and page. No source above the floor, no answer.
+- **Bilingual end to end.** Ask in English or Bangla about a document in either. Bangla
+  normalization is one function shared by ingestion and query, and every screen is asserted
+  at 200% text scale in Bangla.
+- **Cross-lingual retrieval that is measured, not assumed.** Hybrid dense + lexical search
+  fused by reciprocal rank, with query translation as a second mitigation, compared on a gold
+  set that includes 15 unanswerable questions.
+- **Personal files stay personal.** A student can attach a class routine photo to ask "which
+  of my exams are this week?". It is read for that question only and can never enter the
+  shared index. The extracted course codes must be confirmed by the user before any answer.
+- **Choose the model.** Five cheap models behind a server-side allow-list, switchable from the
+  top bar. The app only ever sends a short key; the OpenRouter id never leaves the server.
+- **Row-level security everywhere**, with the audience filter inside the SQL query.
+
+## The app
+
+A redesign in orange with a panda that waves at launch. Built on Riverpod with
+`data / domain / presentation` feature folders and a sealed `Result` type, so no network call
+throws across a layer.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/welcome.png" alt="Welcome" width="200"><br><sub>Welcome, after the launch animation</sub></td>
+    <td align="center"><img src="docs/screenshots/attach-sheet.png" alt="The attach sheet over a conversation" width="200"><br><sub>Attach: camera, gallery or file</sub></td>
+    <td align="center"><img src="docs/screenshots/settings.png" alt="Settings" width="200"><br><sub>Settings</sub></td>
+  </tr>
+</table>
+
+- **Launch animation.** A panda peeks over a ledge, waves, and the wordmark fades up while
+  clouds drift. It runs as one timeline on one controller, so it stays in step on a slow
+  phone. Returning users get a shorter version. The
+  [full recording](docs/media/splash.mp4) is in the repo.
+- **Model picker.** The pill at the top left shows the current model and opens a menu of five:
+  Gemma 4 (the default, and the one the eval measures), Claude Haiku 5.5, GPT-6 Luna,
+  GPT-6.1 Terra (about ten times the cost, and labelled so), and DeepSeek V4.1 Flash. The server
+  validates the key and refuses an unknown one with a 422 before spending a token. The menu
+  adds no blur, because the budget is two `BackdropFilter`s per screen.
+- **Settings.** Pushed with a custom route (the screen below slides to -30% under a scrim,
+  with an edge-swipe back that commits past 35% or 800 px/s). Interface language, display name
+  saved through `PATCH /me`, institution and role, and sign out. The language and the model
+  you picked are remembered.
+- **Attach sheet.** Camera, gallery or file, with the 10 MB limit and the privacy line
+  stated where the choice is made.
+
+The screenshots are of a test account against a real Supabase project, answering from the
+public notices of one university. Personal details in them are masked.
+
+## Status
+
+This is an in-progress thesis project. The numbers below are real and reproducible; the
+gaps are named rather than hidden.
+
+| | |
+|---|---|
+| Backend pipeline, API, streaming | complete — 391 tests |
+| Flutter client | splash, auth, join, home, model picker, chat with citations, attachments, settings — 126 tests. Chat-thread redesign, source viewer and the admin screens pending |
+| Cross-lingual verification (Strategy A premise) | **measured — passes** |
+| Strategy B implementation | complete, 22 tests |
+| **Ablation A — the headline result** | **not run.** Blocked on a real bilingual corpus |
+| Corpus | live database: 15 public notices from one university (71 chunks). The measurements below were taken on an earlier set of 9 documents and 52 chunks. Both are too small, and collection is the active blocker |
+
+The honest summary: the machinery is built and tested, and the one measurement that
+would make or break the whole approach has been taken and passed. The comparative
+ablation that constitutes the thesis result needs a corpus that does not exist yet.
 
 ---
 
@@ -31,26 +127,6 @@ Two mitigations are implemented and measured against each other:
   equivalents near each other.
 - **Strategy B — query translation.** Translate the query and run both arms again,
   buying the lexical arm back for one round trip.
-
----
-
-## Status
-
-This is an in-progress thesis project. The numbers below are real and reproducible; the
-gaps are named rather than hidden.
-
-| | |
-|---|---|
-| Backend pipeline, API, streaming | complete — 363 tests |
-| Flutter client | chat, attachments, auth complete — 35 tests. Source viewer, admin screens pending |
-| Cross-lingual verification (Strategy A premise) | **measured — passes** |
-| Strategy B implementation | complete, 22 tests |
-| **Ablation A — the headline result** | **not run.** Blocked on a real bilingual corpus |
-| Corpus | 9 documents, 52 chunks. Too small; collection is the active blocker |
-
-The honest summary: the machinery is built and tested, and the one measurement that
-would make or break the whole approach has been taken and passed. The comparative
-ablation that constitutes the thesis result needs a corpus that does not exist yet.
 
 ---
 
@@ -238,10 +314,16 @@ make dev                      # backend, reload
 make extract-report           # encoding classification — run FIRST on a new corpus
 make ingest                   # full pipeline
 make eval                     # ablation tables → eval/reports/
-make test                     # 363 tests
+make test                     # 391 tests
 
-cd app && flutter run         # 35 tests via flutter test
+cd app && flutter run         # 126 tests via flutter test
 ```
+
+On Windows without `make`, `.\make.cmd <target>` takes the same names. The Flutter app reads
+`BULLETIN_SUPABASE_URL` and `BULLETIN_SUPABASE_ANON_KEY` as `--dart-define`s (the anon key only; the
+service key never goes near the client) and reaches a local backend at `10.0.2.2:8000` from an
+Android emulator. Run the backend without `--reload` on Windows: it reports reloading and keeps
+serving the old code.
 
 `make extract-report` before `make ingest` is not optional advice. Legacy-font documents
 ingested without the converter index as garbage, with no error anywhere.
@@ -263,10 +345,14 @@ eval/
   run_eval.py               Recall@k, MRR, refusal, --ablation, --answers
   verify_crosslingual.py    the Strategy A premise check
   compare_generation_models.py
-app/lib/                    Flutter — core/, features/, l10n/
+app/lib/                    Flutter
+  core/                     theme tokens, motion, routing, widgets, net, prefs
+  features/                 splash, auth, chat (home, model picker), attachments, settings
+  l10n/                     English and Bangla strings
+docs/                       screenshots and the launch recording
 ```
 
-~7,300 lines of backend Python, ~5,800 lines of Dart, ~5,400 lines of tests.
+~9,000 lines of backend Python, ~12,900 lines of Dart, ~7,600 lines of tests.
 
 ---
 
@@ -275,6 +361,9 @@ app/lib/                    Flutter — core/, features/, l10n/
 - **Ablation A**, the thesis result — blocked on a bilingual corpus
 - **Ablation B**, extraction paths on Bangla slices — same blocker
 - A corpus large enough for Recall@5 to mean something
-- Flutter: source viewer, admin document list, publish flow, settings
+- Flutter: the chat thread still has the earlier design (the rest of the app is redesigned),
+  and the source viewer, admin document list and publish flow are pending
+- The source card previews raw extracted text. For a few scanned notices that text layer is
+  noisy, and the answer is right while the preview is not; the viewer will show the page itself
 - Deployment: no Dockerfile yet; cold-start and first-token latency unmeasured
 - Profiling on a real mid-range Android device
