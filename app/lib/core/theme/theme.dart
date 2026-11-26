@@ -119,11 +119,13 @@ ThemeData buildBulletinTheme() {
   );
 }
 
-/// The fixed ambient gradient (DESIGN §3).
+/// The fixed app background: warm [BulletinColors.canvas] with three static
+/// glows (handoff README §1, "Crystal glass": glass needs colour behind it).
 ///
 /// It sits behind the whole app and never scrolls, which is why it lives above
-/// the Navigator rather than inside a screen: a gradient rebuilt per route
-/// would flicker at every push.
+/// the Navigator rather than inside a screen: a background rebuilt per route
+/// would flicker at every push. Never animated, for the same reason and for
+/// frame budget on a mid-range phone (DESIGN §7).
 class AmbientBackground extends StatelessWidget {
   const AmbientBackground({required this.child, super.key});
 
@@ -131,36 +133,65 @@ class AmbientBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Four radial pools over a warm base, each fading out by ~60% of its
-    // radius -- the handoff spec's mesh gradient. One painted layer, never
-    // animated: it is atmosphere, and an animated background would both fight
-    // the source card and cost frames on a mid-range phone (DESIGN §7).
     return DecoratedBox(
-      decoration: const BoxDecoration(color: Color(0xFFFCFAFB)),
+      decoration: const BoxDecoration(color: BulletinColors.canvas),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          for (final pool in _pools)
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: pool.$1,
-                  radius: 0.95,
-                  colors: [pool.$2, pool.$2.withValues(alpha: 0)],
-                  stops: const [0, 0.6],
-                ),
-              ),
+          RepaintBoundary(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [for (final glow in _glows) _Glow(glow)],
             ),
+          ),
           child,
         ],
       ),
     );
   }
 
-  static const _pools = <(Alignment, Color)>[
-    (Alignment.topLeft, Color(0xFFEFE9F7)), // lavender
-    (Alignment.topRight, Color(0xFFFDEEF1)), // blush
-    (Alignment.bottomLeft, Color(0xFFE8F3EE)), // mint
-    (Alignment.bottomRight, Color(0xFFFDF7EC)), // cream
+  /// The prototype's Home background: centre (as a fraction of the screen),
+  /// radii (as fractions of width and height) and colour.
+  static const _glows = <({Offset at, Size radius, Color color})>[
+    (at: Offset(0.18, 0.04), radius: Size(0.60, 0.22), color: BulletinColors.glowPeach),
+    (at: Offset(0.92, 0.06), radius: Size(0.45, 0.18), color: BulletinColors.glowApricot),
+    (at: Offset(0.50, 1.00), radius: Size(0.80, 0.26), color: BulletinColors.glowEmber),
   ];
+}
+
+/// One elliptical radial glow. CSS `radial-gradient(60% 22% at 18% 4%, ...)`
+/// is an ellipse; Flutter's [RadialGradient] is a circle, so the circle is
+/// drawn in a box with the ellipse's proportions and positioned to match.
+class _Glow extends StatelessWidget {
+  const _Glow(this.glow);
+
+  final ({Offset at, Size radius, Color color}) glow;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, box) {
+        final rx = glow.radius.width * box.maxWidth;
+        final ry = glow.radius.height * box.maxHeight;
+        return Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            Positioned(
+              left: glow.at.dx * box.maxWidth - rx,
+              top: glow.at.dy * box.maxHeight - ry,
+              width: rx * 2,
+              height: ry * 2,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: [glow.color, glow.color.withValues(alpha: 0)],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

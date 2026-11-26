@@ -99,30 +99,6 @@ abstract class L {
   /// **'Bulletin'**
   String get appTitle;
 
-  /// No description provided for @tagline.
-  ///
-  /// In en, this message translates to:
-  /// **'Your institution\'s bulletin, made askable — with the page to prove every answer.'**
-  String get tagline;
-
-  /// No description provided for @signInAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in'**
-  String get signInAction;
-
-  /// No description provided for @emailLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Email'**
-  String get emailLabel;
-
-  /// No description provided for @passwordLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Password'**
-  String get passwordLabel;
-
   /// No description provided for @showPassword.
   ///
   /// In en, this message translates to:
@@ -134,18 +110,6 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Hide'**
   String get hidePassword;
-
-  /// No description provided for @joinCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Join with invite code'**
-  String get joinCode;
-
-  /// No description provided for @signUpAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Create an account'**
-  String get signUpAction;
 
   /// No description provided for @signOutAction.
   ///
@@ -162,7 +126,7 @@ abstract class L {
   /// No description provided for @joinSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Enter the invite code your institution gave you.'**
+  /// **'Enter the invite code from your department office.'**
   String get joinSubtitle;
 
   /// No description provided for @inviteCodeLabel.
@@ -171,47 +135,59 @@ abstract class L {
   /// **'Invite code'**
   String get inviteCodeLabel;
 
+  /// Placeholder showing the invite code's shape. Keep the Latin letters: codes are always Latin.
+  ///
+  /// In en, this message translates to:
+  /// **'GUB-XXXX-00'**
+  String get joinCodeHint;
+
+  /// No description provided for @joinCodeHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters and numbers only. The letter O and the number 0 are different.'**
+  String get joinCodeHelper;
+
+  /// No description provided for @joinCodeNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This code doesn\'t match any institution. Check it with your office.'**
+  String get joinCodeNotFound;
+
+  /// No description provided for @joinOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get joinOptional;
+
+  /// No description provided for @joinDisplayNameHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Used in greetings. Leave it empty to use your full name.'**
+  String get joinDisplayNameHelper;
+
   /// No description provided for @joinAction.
   ///
   /// In en, this message translates to:
-  /// **'Join'**
+  /// **'Join institution'**
   String get joinAction;
 
-  /// No description provided for @greetingMorning.
+  /// No description provided for @joinBusy.
   ///
   /// In en, this message translates to:
-  /// **'Good morning, {name}'**
-  String greetingMorning(String name);
+  /// **'Joining'**
+  String get joinBusy;
 
-  /// No description provided for @greetingAfternoon.
+  /// No description provided for @joinOffline.
   ///
   /// In en, this message translates to:
-  /// **'Good afternoon, {name}'**
-  String greetingAfternoon(String name);
-
-  /// No description provided for @greetingEvening.
-  ///
-  /// In en, this message translates to:
-  /// **'Good evening, {name}'**
-  String greetingEvening(String name);
-
-  /// No description provided for @greetingPlain.
-  ///
-  /// In en, this message translates to:
-  /// **'What would you like to know?'**
-  String get greetingPlain;
+  /// **'You\'re offline. Connect to the internet to join.'**
+  String get joinOffline;
 
   /// No description provided for @publishedDocuments.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, one{1 published document} other{{count} published documents}}'**
   String publishedDocuments(int count);
-
-  /// No description provided for @tryAsking.
-  ///
-  /// In en, this message translates to:
-  /// **'Try asking'**
-  String get tryAsking;
 
   /// No description provided for @suggestExamStart.
   ///
@@ -252,8 +228,50 @@ abstract class L {
   /// No description provided for @askHome.
   ///
   /// In en, this message translates to:
-  /// **'Ask about your campus documents'**
+  /// **'Ask about exams, fees, rules…'**
   String get askHome;
+
+  /// No description provided for @askAboutFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about this file…'**
+  String get askAboutFile;
+
+  /// No description provided for @homeGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi {name}, what do you want to know today?'**
+  String homeGreeting(String name);
+
+  /// No description provided for @homeGreetingNoName.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to know today?'**
+  String get homeGreetingNoName;
+
+  /// No description provided for @homeInstitutionLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Answers come only from {institution} documents.'**
+  String homeInstitutionLine(String institution);
+
+  /// No description provided for @homeInstitutionLineGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Answers come only from your institution\'s documents.'**
+  String get homeInstitutionLineGeneric;
+
+  /// No description provided for @homeAttachRoutine.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach routine'**
+  String get homeAttachRoutine;
+
+  /// Screen-reader label for the round menu button on Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get homeMenuLabel;
 
   /// No description provided for @askFollowUp.
   ///
@@ -270,25 +288,25 @@ abstract class L {
   /// No description provided for @attachTitle.
   ///
   /// In en, this message translates to:
-  /// **'Attach a file'**
+  /// **'Add to your question'**
   String get attachTitle;
 
   /// No description provided for @attachCamera.
   ///
   /// In en, this message translates to:
-  /// **'Camera'**
+  /// **'Take a photo'**
   String get attachCamera;
 
   /// No description provided for @attachGallery.
   ///
   /// In en, this message translates to:
-  /// **'Photo library'**
+  /// **'Choose from gallery'**
   String get attachGallery;
 
   /// No description provided for @attachFiles.
   ///
   /// In en, this message translates to:
-  /// **'Files'**
+  /// **'Choose a file'**
   String get attachFiles;
 
   /// No description provided for @attachNote.
@@ -300,7 +318,7 @@ abstract class L {
   /// No description provided for @attachAction.
   ///
   /// In en, this message translates to:
-  /// **'Attach'**
+  /// **'Attach a file'**
   String get attachAction;
 
   /// No description provided for @removeAttachment.
@@ -600,7 +618,7 @@ abstract class L {
   /// No description provided for @answerLangNote.
   ///
   /// In en, this message translates to:
-  /// **'Answers always come back in the language you asked in, whichever you pick here.'**
+  /// **'The app changes instantly. Answers follow the language you ask in.'**
   String get answerLangNote;
 
   /// No description provided for @displayNameLabel.
@@ -735,23 +753,377 @@ abstract class L {
   /// **'Back'**
   String get backLabel;
 
-  /// No description provided for @checkYourEmail.
+  /// Under the wordmark on the splash screen. Verbatim from the handoff's bulletin-data.js.
   ///
   /// In en, this message translates to:
-  /// **'Almost there — check {email} for a confirmation link, then sign in.'**
-  String checkYourEmail(String email);
+  /// **'Answers from your campus documents, with the page they came from.'**
+  String get splashTagline;
 
-  /// No description provided for @emailRequired.
+  /// Screen-reader label for the waving panda on the splash and the Welcome screen.
   ///
   /// In en, this message translates to:
-  /// **'Enter your email address.'**
-  String get emailRequired;
+  /// **'Bulletin panda waving'**
+  String get pandaWavingLabel;
 
-  /// No description provided for @passwordTooShort.
+  /// No description provided for @welcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your password needs at least 6 characters.'**
-  String get passwordTooShort;
+  /// **'Answers for every campus question.'**
+  String get welcomeTitle;
+
+  /// No description provided for @welcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exams, fees and rules from your university\'s own documents, with the page they came from.'**
+  String get welcomeSubtitle;
+
+  /// The Welcome screen's one button; opens sign in.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get welcomeLogIn;
+
+  /// Auth strings: verbatim from docs/design/handoff/bulletin-data.js unless noted in TASKS.md.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get authSignInTitle;
+
+  /// No description provided for @authSignInSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the email your institution gave you.'**
+  String get authSignInSubtitle;
+
+  /// No description provided for @authEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get authEmailLabel;
+
+  /// No description provided for @authPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get authPasswordLabel;
+
+  /// No description provided for @authPasswordHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters.'**
+  String get authPasswordHelper;
+
+  /// No description provided for @authEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This email is incomplete. Add the domain, like name@green.edu.bd.'**
+  String get authEmailInvalid;
+
+  /// No description provided for @authWrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'This password doesn\'t match the email. Check it, or reset your password.'**
+  String get authWrongPassword;
+
+  /// No description provided for @authResetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get authResetPassword;
+
+  /// No description provided for @authSignInAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get authSignInAction;
+
+  /// No description provided for @authSigningIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in'**
+  String get authSigningIn;
+
+  /// No description provided for @authOr.
+  ///
+  /// In en, this message translates to:
+  /// **'Or'**
+  String get authOr;
+
+  /// No description provided for @authJoinWithInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Join with invite code'**
+  String get authJoinWithInvite;
+
+  /// No description provided for @authNewHere.
+  ///
+  /// In en, this message translates to:
+  /// **'New to Bulletin?'**
+  String get authNewHere;
+
+  /// No description provided for @authCreateAccountLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get authCreateAccountLink;
+
+  /// No description provided for @authTermsPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'By signing in, you agree to our '**
+  String get authTermsPrefix;
+
+  /// No description provided for @authTermsLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Use'**
+  String get authTermsLink;
+
+  /// No description provided for @authTermsSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'.'**
+  String get authTermsSuffix;
+
+  /// No description provided for @createTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createTitle;
+
+  /// No description provided for @createSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll confirm your email before your first question.'**
+  String get createSubtitle;
+
+  /// No description provided for @createNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get createNameLabel;
+
+  /// No description provided for @createAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAction;
+
+  /// No description provided for @createHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get createHaveAccount;
+
+  /// No description provided for @createSignInLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get createSignInLink;
+
+  /// No description provided for @privacyPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'For more information, see our '**
+  String get privacyPrefix;
+
+  /// No description provided for @privacyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get privacyLink;
+
+  /// No description provided for @privacySuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'.'**
+  String get privacySuffix;
+
+  /// No description provided for @checkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email'**
+  String get checkTitle;
+
+  /// No description provided for @checkHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is created'**
+  String get checkHeading;
+
+  /// No description provided for @checkResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend link'**
+  String get checkResend;
+
+  /// No description provided for @checkDifferentEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a different email'**
+  String get checkDifferentEmail;
+
+  /// No description provided for @authEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'you@green.edu.bd'**
+  String get authEmailHint;
+
+  /// No description provided for @authResetSent.
+  ///
+  /// In en, this message translates to:
+  /// **'If an account uses {email}, a reset link is on its way.'**
+  String authResetSent(String email);
+
+  /// No description provided for @authResetNeedsEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email above, then tap Reset password.'**
+  String get authResetNeedsEmail;
+
+  /// No description provided for @authErrorNotConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your email first. Open the link we sent you.'**
+  String get authErrorNotConfirmed;
+
+  /// No description provided for @authErrorAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'This email already has an account. Sign in instead.'**
+  String get authErrorAlreadyRegistered;
+
+  /// No description provided for @authErrorWeakPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a stronger password.'**
+  String get authErrorWeakPassword;
+
+  /// No description provided for @authErrorRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Wait a minute, then try again.'**
+  String get authErrorRateLimited;
+
+  /// No description provided for @createPasswordShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least 8 characters. This one has {count}.'**
+  String createPasswordShort(int count);
+
+  /// The email is shown in bold; it must appear exactly once.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a confirmation link to {email}. Open it on this phone to continue.'**
+  String checkBody(String email);
+
+  /// No description provided for @checkResent.
+  ///
+  /// In en, this message translates to:
+  /// **'A new link is on its way.'**
+  String get checkResent;
+
+  /// No description provided for @newChat.
+  ///
+  /// In en, this message translates to:
+  /// **'New chat'**
+  String get newChat;
+
+  /// No description provided for @modelMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI model'**
+  String get modelMenuTitle;
+
+  /// No description provided for @modelPillLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model: {name}'**
+  String modelPillLabel(String name);
+
+  /// No description provided for @modelDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'{maker} · Default'**
+  String modelDefault(String maker);
+
+  /// No description provided for @modelLowCost.
+  ///
+  /// In en, this message translates to:
+  /// **'{maker} · Fast, low cost'**
+  String modelLowCost(String maker);
+
+  /// No description provided for @modelHighCost.
+  ///
+  /// In en, this message translates to:
+  /// **'{maker} · Stronger, costs more'**
+  String modelHighCost(String maker);
+
+  /// No description provided for @settingsProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get settingsProfile;
+
+  /// No description provided for @settingsEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get settingsEmail;
+
+  /// No description provided for @joinedWithCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined with code'**
+  String get joinedWithCode;
+
+  /// No description provided for @documentsRowSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish and review documents'**
+  String get documentsRowSub;
+
+  /// No description provided for @displayNameSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get displayNameSaved;
+
+  /// No description provided for @attachCameraSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine, registration slip or notice'**
+  String get attachCameraSub;
+
+  /// No description provided for @attachGallerySub.
+  ///
+  /// In en, this message translates to:
+  /// **'JPG or PNG'**
+  String get attachGallerySub;
+
+  /// No description provided for @attachFilesSub.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get attachFilesSub;
+
+  /// No description provided for @attachLimitBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to '**
+  String get attachLimitBefore;
+
+  /// No description provided for @attachLimitAfter.
+  ///
+  /// In en, this message translates to:
+  /// **' per file.'**
+  String get attachLimitAfter;
+
+  /// No description provided for @sheetHandleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get sheetHandleLabel;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

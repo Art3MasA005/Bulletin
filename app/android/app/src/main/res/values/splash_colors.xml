@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand orange (#FF7A2E): the first frame of the Flutter splash. The OS
+         launch window uses it too, so the hand-over from the system splash to
+         the app's own splash is invisible. Kept out of colors.xml, which
+         flutter_launcher_icons rewrites. -->
+    <color name="splash_background">#FF7A2E</color>
+</resources>

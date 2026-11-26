@@ -52,6 +52,9 @@ class ChatController extends StateNotifier<ChatState> {
   final ApiClient _api;
   StreamSubscription<SseEvent>? _subscription;
 
+  /// The model the last question went to, so a retry asks the same one.
+  String? _lastModel;
+
   /// The last few turns, for the backend's condenser (PRD §7.2 step 1).
   ///
   /// Capped at three pairs: the condenser only resolves pronouns, and sending
@@ -65,11 +68,12 @@ class ChatController extends StateNotifier<ChatState> {
     ];
   }
 
-  Future<void> send(String question, {String? attachmentId}) async {
+  Future<void> send(String question, {String? attachmentId, String? model}) async {
     final trimmed = question.trim();
     if (trimmed.isEmpty || state.sending) return;
 
     final history = _history();
+    _lastModel = model;
     final pending = ChatMessage.pending();
     state = state.copyWith(
       messages: [
@@ -84,6 +88,7 @@ class ChatController extends StateNotifier<ChatState> {
       question: trimmed,
       conversationId: state.conversationId,
       attachmentId: attachmentId,
+      model: model,
       history: history,
     );
 
@@ -177,7 +182,7 @@ class ChatController extends StateNotifier<ChatState> {
     }
     final question = messages.isNotEmpty ? messages.removeLast().text : null;
     state = state.copyWith(messages: messages, sending: false);
-    if (question != null) send(question);
+    if (question != null) send(question, model: _lastModel);
   }
 
   void loadHistory(List<ChatMessage> messages, {String? conversationId}) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bulletin/core/net/api_client.dart';
+import 'package:bulletin/core/net/result.dart';
 import 'package:bulletin/core/net/sse.dart';
 import 'package:bulletin/features/chat/data/chat_controller.dart';
 import 'package:bulletin/features/chat/domain/message.dart';
@@ -9,9 +10,17 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// An ApiClient whose chat() replays a scripted event stream.
 class ScriptedApi extends ApiClient {
-  ScriptedApi(this.events, {this.onCall}) : super(token: () => 'token', dio: Dio());
+  ScriptedApi(this.events, {this.onCall, this.offered = const []})
+    : super(token: () => 'token', dio: Dio());
 
   final List<SseEvent> events;
+
+  /// What GET /models answers.
+  final List<Map<String, dynamic>> offered;
+
+  @override
+  Future<Result<List<Map<String, dynamic>>>> models() async => Ok(offered);
+
   final void Function(Map<String, dynamic> request)? onCall;
   final controller = StreamController<SseEvent>();
 
@@ -20,12 +29,14 @@ class ScriptedApi extends ApiClient {
     required String question,
     String? conversationId,
     String? attachmentId,
+    String? model,
     List<Map<String, String>> history = const [],
   }) async* {
     onCall?.call({
       'question': question,
       'conversation_id': conversationId,
       'attachment_id': attachmentId,
+      'model': model,
       'history': history,
     });
     for (final event in events) {

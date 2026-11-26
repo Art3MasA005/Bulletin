@@ -86,6 +86,20 @@ class ApiClient {
 
   // ── identity ──────────────────────────────────────────────────────────────
 
+  /// Rename the caller (Settings). Blank clears the display name.
+  Future<Result<Membership>> updateDisplayName(String displayName) async {
+    try {
+      final response = await _dio.patch<dynamic>(
+        '/me',
+        data: {'display_name': displayName},
+        options: Options(headers: _headers(contentType: 'application/json')),
+      );
+      return _read(response, (data) => Membership.fromJson(data as Map<String, dynamic>));
+    } catch (error) {
+      return _transportFailure(error);
+    }
+  }
+
   Future<Result<Membership>> me() async {
     try {
       final response = await _dio.get<dynamic>(
@@ -119,6 +133,26 @@ class ApiClient {
 
   // ── chat ──────────────────────────────────────────────────────────────────
 
+  /// The models the picker may offer, as the server lists them. Keys and
+  /// names only; the model ids never leave the server.
+  Future<Result<List<Map<String, dynamic>>>> models() async {
+    try {
+      final response = await _dio.get<dynamic>(
+        '/models',
+        options: Options(headers: _headers()),
+      );
+      return _read(
+        response,
+        (data) => [
+          for (final m in (data as Map<String, dynamic>)['models'] as List)
+            m as Map<String, dynamic>,
+        ],
+      );
+    } catch (error) {
+      return _transportFailure(error);
+    }
+  }
+
   /// Ask a question and receive the answer as it is written.
   ///
   /// Yields [SseEvent]s straight from the wire. The caller (the chat notifier)
@@ -132,6 +166,7 @@ class ApiClient {
     required String question,
     String? conversationId,
     String? attachmentId,
+    String? model,
     List<Map<String, String>> history = const [],
   }) async* {
     try {
@@ -142,6 +177,7 @@ class ApiClient {
           'history': history,
           if (conversationId != null) 'conversation_id': conversationId,
           if (attachmentId != null) 'attachment_id': attachmentId,
+          if (model != null) 'model': model,
         },
         options: Options(
           headers: _headers(contentType: 'application/json'),
@@ -321,6 +357,8 @@ class Membership {
     required this.role,
     this.email,
     this.institutionName,
+    this.displayName,
+    this.inviteCode,
   });
 
   factory Membership.fromJson(Map<String, dynamic> json) => Membership(
@@ -329,6 +367,8 @@ class Membership {
     role: json['role'] as String,
     email: json['email'] as String?,
     institutionName: json['institution_name'] as String?,
+    displayName: json['display_name'] as String?,
+    inviteCode: json['invite_code'] as String?,
   );
 
   final String userId;
@@ -336,6 +376,12 @@ class Membership {
   final String role;
   final String? email;
   final String? institutionName;
+
+  /// The name chosen at join, if any (Home greets with it).
+  final String? displayName;
+
+  /// The code the member joined with (Settings shows it).
+  final String? inviteCode;
 
   bool get isAdmin => role == 'admin';
   bool get isTeacher => role == 'teacher';

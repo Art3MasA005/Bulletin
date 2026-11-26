@@ -14,6 +14,8 @@
 ///       --dart-define=BULLETIN_SUPABASE_ANON_KEY=sb_publishable_...
 library;
 
+import 'package:flutter/foundation.dart' show kDebugMode;
+
 abstract final class AppConfig {
   /// The backend. `10.0.2.2` is the host machine as seen from the Android
   /// emulator; a physical device needs the laptop's LAN address.
@@ -29,6 +31,19 @@ abstract final class AppConfig {
   static const supabaseAnonKey = String.fromEnvironment('BULLETIN_SUPABASE_ANON_KEY');
 
   static bool get isConfigured => supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
+
+  /// A test account that pre-fills Sign in, for DEBUG builds only. Read it
+  /// through [devAccount], never directly: that getter is what keeps the
+  /// strings out of a release build.
+  static const _devEmail = String.fromEnvironment('BULLETIN_DEV_EMAIL');
+  static const _devPassword = String.fromEnvironment('BULLETIN_DEV_PASSWORD');
+
+  /// The debug test account, or null. In release `kDebugMode` is the
+  /// constant false, so the compiler drops both strings from the binary.
+  static ({String email, String password})? get devAccount {
+    if (!kDebugMode || _devEmail.isEmpty) return null;
+    return (email: _devEmail, password: _devPassword);
+  }
 
   /// Client-side limits, kept in step with the backend's (PRD §8.5, §10). They
   /// exist to fail fast and explain, not to enforce: the server decides.

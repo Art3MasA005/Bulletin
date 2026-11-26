@@ -45,6 +45,7 @@ dependencies:
   flutter_markdown: ^0.7.3
 
   intl: ^0.20.2
+  shared_preferences: ^2.5.6
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +62,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    # The panda's three layers (splash, sign-in) and the whole panda (Welcome).
+    # All four share one 786x498 canvas so the layers stack 1:1.
+    - assets/panda/
 
   # Anek covers Latin and Bengali in one superfamily (DESIGN §3): English and
   # Bangla in the same sentence share a design voice instead of colliding.
@@ -85,9 +91,15 @@ flutter:
   generate: true
 
 flutter_launcher_icons:
+  # The redesign's "2a Peeking Panda" (docs/design/handoff/assets/bulletin-logo.svg),
+  # rendered as described in assets/logo/README.md.
   image_path: "assets/logo/app_icon.png"
+  image_path_ios: "assets/logo/app_icon_ios.png"
   android: "ic_launcher"
   ios: true
   remove_alpha_ios: true
-  adaptive_icon_background: "#6A5AE0"
-  adaptive_icon_foreground: "assets/logo/app_icon.png"
+  adaptive_icon_background: "#FF7A2E"
+  adaptive_icon_foreground: "assets/logo/app_icon_foreground.png"
+  # The PNG is already scaled into the safe zone (assets/logo/README.md);
+  # the plugin's default 16% inset on top of that shrinks the mark twice.
+  adaptive_icon_foreground_inset: 0

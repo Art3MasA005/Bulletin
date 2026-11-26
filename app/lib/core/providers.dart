@@ -11,7 +11,8 @@
 /// 403 — or worse, be trusted.
 library;
 
-import 'package:flutter/widgets.dart' show Locale;
+export 'prefs/preferences.dart' show localeProvider;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -59,9 +60,3 @@ final membershipProvider = FutureProvider<Membership?>((ref) async {
     Failure() => null,
   };
 });
-
-/// The interface language, independent of the query language.
-///
-/// PRD §3: the app is bilingual, and a student may run the interface in Bangla
-/// while asking in English, or the reverse. Defaults to the device locale.
-final localeProvider = StateProvider<Locale?>((ref) => null);

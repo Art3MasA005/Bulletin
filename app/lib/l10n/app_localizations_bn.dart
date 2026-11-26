@@ -12,61 +12,48 @@ class LBn extends L {
   String get appTitle => 'বুলেটিন';
 
   @override
-  String get tagline => 'আপনার প্রতিষ্ঠানের নোটিশ — প্রশ্ন করুন, প্রমাণসহ উত্তর পান।';
-
-  @override
-  String get signInAction => 'সাইন ইন';
-
-  @override
-  String get emailLabel => 'ইমেইল';
-
-  @override
-  String get passwordLabel => 'পাসওয়ার্ড';
-
-  @override
   String get showPassword => 'দেখান';
 
   @override
   String get hidePassword => 'লুকান';
 
   @override
-  String get joinCode => 'ইনভাইট কোড দিয়ে যোগ দিন';
-
-  @override
-  String get signUpAction => 'অ্যাকাউন্ট তৈরি করুন';
-
-  @override
   String get signOutAction => 'সাইন আউট';
 
   @override
-  String get joinTitle => 'আপনার প্রতিষ্ঠানে যোগ দিন';
+  String get joinTitle => 'প্রতিষ্ঠানে যোগ দিন';
 
   @override
-  String get joinSubtitle => 'প্রতিষ্ঠান থেকে পাওয়া ইনভাইট কোডটি লিখুন।';
+  String get joinSubtitle => 'বিভাগীয় অফিস থেকে পাওয়া আমন্ত্রণ কোডটি লিখুন।';
 
   @override
-  String get inviteCodeLabel => 'ইনভাইট কোড';
+  String get inviteCodeLabel => 'আমন্ত্রণ কোড';
 
   @override
-  String get joinAction => 'যোগ দিন';
+  String get joinCodeHint => 'GUB-XXXX-00';
 
   @override
-  String greetingMorning(String name) {
-    return 'শুভ সকাল, $name';
-  }
+  String get joinCodeHelper => 'শুধু অক্ষর ও সংখ্যা। ইংরেজি O অক্ষর আর 0 সংখ্যা আলাদা।';
 
   @override
-  String greetingAfternoon(String name) {
-    return 'শুভ অপরাহ্ন, $name';
-  }
+  String get joinCodeNotFound =>
+      'এই কোড কোনো প্রতিষ্ঠানের সাথে মেলে না। অফিস থেকে কোডটি মিলিয়ে নিন।';
 
   @override
-  String greetingEvening(String name) {
-    return 'শুভ সন্ধ্যা, $name';
-  }
+  String get joinOptional => 'ঐচ্ছিক';
 
   @override
-  String get greetingPlain => 'কী জানতে চান?';
+  String get joinDisplayNameHelper =>
+      'শুভেচ্ছাবার্তায় দেখানো হবে। খালি রাখলে পুরো নাম দেখাবে।';
+
+  @override
+  String get joinAction => 'প্রতিষ্ঠানে যোগ দিন';
+
+  @override
+  String get joinBusy => 'যোগ দেওয়া হচ্ছে';
+
+  @override
+  String get joinOffline => 'আপনি অফলাইনে আছেন। যোগ দিতে ইন্টারনেটে সংযুক্ত হোন।';
 
   @override
   String publishedDocuments(int count) {
@@ -78,9 +65,6 @@ class LBn extends L {
     );
     return '$_temp0';
   }
-
-  @override
-  String get tryAsking => 'জিজ্ঞাসা করে দেখুন';
 
   @override
   String get suggestExamStart => 'চূড়ান্ত পরীক্ষা কবে শুরু হবে?';
@@ -101,7 +85,33 @@ class LBn extends L {
   String get suggestExamBn => 'When do the final examinations start?';
 
   @override
-  String get askHome => 'আপনার ক্যাম্পাসের নথি নিয়ে প্রশ্ন করুন';
+  String get askHome => 'পরীক্ষা, ফি বা নিয়ম নিয়ে জিজ্ঞেস করুন…';
+
+  @override
+  String get askAboutFile => 'এই ফাইল নিয়ে জিজ্ঞেস করুন…';
+
+  @override
+  String homeGreeting(String name) {
+    return 'হাই $name, আজ কী জানতে চান?';
+  }
+
+  @override
+  String get homeGreetingNoName => 'আজ কী জানতে চান?';
+
+  @override
+  String homeInstitutionLine(String institution) {
+    return 'উত্তর আসে শুধু $institution-এর ডকুমেন্ট থেকে।';
+  }
+
+  @override
+  String get homeInstitutionLineGeneric =>
+      'উত্তর আসে শুধু আপনার প্রতিষ্ঠানের ডকুমেন্ট থেকে।';
+
+  @override
+  String get homeAttachRoutine => 'রুটিন যুক্ত করুন';
+
+  @override
+  String get homeMenuLabel => 'সেটিংস';
 
   @override
   String get askFollowUp => 'আরেকটি প্রশ্ন করুন';
@@ -110,23 +120,23 @@ class LBn extends L {
   String get sendAction => 'পাঠান';
 
   @override
-  String get attachTitle => 'ফাইল যুক্ত করুন';
+  String get attachTitle => 'প্রশ্নের সঙ্গে যুক্ত করুন';
 
   @override
-  String get attachCamera => 'ক্যামেরা';
+  String get attachCamera => 'ছবি তুলুন';
 
   @override
-  String get attachGallery => 'ছবির গ্যালারি';
+  String get attachGallery => 'গ্যালারি থেকে বেছে নিন';
 
   @override
-  String get attachFiles => 'ফাইল';
+  String get attachFiles => 'ফাইল বেছে নিন';
 
   @override
   String get attachNote =>
       'ফাইলটি শুধু এই প্রশ্নের উত্তর দিতে পড়া হয়। প্রতিষ্ঠানের নথিতে এটি যোগ করা হয় না।';
 
   @override
-  String get attachAction => 'যুক্ত করুন';
+  String get attachAction => 'ফাইল যুক্ত করুন';
 
   @override
   String get removeAttachment => 'সরান';
@@ -322,7 +332,7 @@ class LBn extends L {
 
   @override
   String get answerLangNote =>
-      'এখানে যা-ই নির্বাচন করুন, আপনি যে ভাষায় প্রশ্ন করবেন উত্তর সেই ভাষাতেই আসবে।';
+      'অ্যাপের ভাষা সঙ্গে সঙ্গে বদলে যায়। যে ভাষায় প্রশ্ন করবেন, উত্তর সেই ভাষায় আসবে।';
 
   @override
   String get displayNameLabel => 'প্রদর্শিত নাম';
@@ -397,13 +407,212 @@ class LBn extends L {
   String get backLabel => 'ফিরে যান';
 
   @override
-  String checkYourEmail(String email) {
-    return 'প্রায় হয়ে গেছে — $email ঠিকানায় পাঠানো লিঙ্কে ক্লিক করে সাইন ইন করুন।';
+  String get splashTagline => 'ক্যাম্পাসের ডকুমেন্ট থেকে উত্তর, সঙ্গে উৎসের পাতা।';
+
+  @override
+  String get pandaWavingLabel => 'বুলেটিনের পান্ডা হাত নাড়ছে';
+
+  @override
+  String get welcomeTitle => 'ক্যাম্পাসের প্রতিটি প্রশ্নের উত্তর।';
+
+  @override
+  String get welcomeSubtitle =>
+      'পরীক্ষা, ফি আর নিয়মকানুন — আপনার বিশ্ববিদ্যালয়ের নিজস্ব ডকুমেন্ট থেকে, সঙ্গে উৎসের পাতা।';
+
+  @override
+  String get welcomeLogIn => 'লগ ইন করুন';
+
+  @override
+  String get authSignInTitle => 'সাইন ইন করুন';
+
+  @override
+  String get authSignInSubtitle => 'প্রতিষ্ঠানের দেওয়া ইমেইল দিয়ে সাইন ইন করুন।';
+
+  @override
+  String get authEmailLabel => 'ইমেইল';
+
+  @override
+  String get authPasswordLabel => 'পাসওয়ার্ড';
+
+  @override
+  String get authPasswordHelper => 'কমপক্ষে ৮টি অক্ষর।';
+
+  @override
+  String get authEmailInvalid =>
+      'ইমেইলটি অসম্পূর্ণ। ডোমেইনসহ লিখুন, যেমন name@green.edu.bd';
+
+  @override
+  String get authWrongPassword =>
+      'পাসওয়ার্ডটি এই ইমেইলের সাথে মিলছে না। আবার দেখে নিন, অথবা পাসওয়ার্ড রিসেট করুন।';
+
+  @override
+  String get authResetPassword => 'পাসওয়ার্ড রিসেট করুন';
+
+  @override
+  String get authSignInAction => 'সাইন ইন করুন';
+
+  @override
+  String get authSigningIn => 'সাইন ইন হচ্ছে';
+
+  @override
+  String get authOr => 'অথবা';
+
+  @override
+  String get authJoinWithInvite => 'আমন্ত্রণ কোড দিয়ে যোগ দিন';
+
+  @override
+  String get authNewHere => 'বুলেটিনে নতুন?';
+
+  @override
+  String get authCreateAccountLink => 'অ্যাকাউন্ট খুলুন';
+
+  @override
+  String get authTermsPrefix => 'সাইন ইন করলে আপনি আমাদের ';
+
+  @override
+  String get authTermsLink => 'ব্যবহারের শর্তাবলিতে';
+
+  @override
+  String get authTermsSuffix => ' সম্মত হচ্ছেন।';
+
+  @override
+  String get createTitle => 'অ্যাকাউন্ট খুলুন';
+
+  @override
+  String get createSubtitle => 'প্রথম প্রশ্ন করার আগে ইমেইল নিশ্চিত করতে হবে।';
+
+  @override
+  String get createNameLabel => 'পুরো নাম';
+
+  @override
+  String get createAction => 'অ্যাকাউন্ট খুলুন';
+
+  @override
+  String get createHaveAccount => 'আগেই অ্যাকাউন্ট আছে?';
+
+  @override
+  String get createSignInLink => 'সাইন ইন করুন';
+
+  @override
+  String get privacyPrefix => 'আরও জানতে আমাদের ';
+
+  @override
+  String get privacyLink => 'গোপনীয়তা নীতি';
+
+  @override
+  String get privacySuffix => ' দেখুন।';
+
+  @override
+  String get checkTitle => 'ইমেইল দেখুন';
+
+  @override
+  String get checkHeading => 'আপনার অ্যাকাউন্ট তৈরি হয়েছে';
+
+  @override
+  String get checkResend => 'লিংক আবার পাঠান';
+
+  @override
+  String get checkDifferentEmail => 'অন্য ইমেইল ব্যবহার করুন';
+
+  @override
+  String get authEmailHint => 'you@green.edu.bd';
+
+  @override
+  String authResetSent(String email) {
+    return '$email দিয়ে অ্যাকাউন্ট থাকলে রিসেট লিংক পাঠানো হয়েছে।';
   }
 
   @override
-  String get emailRequired => 'আপনার ইমেইল ঠিকানা লিখুন।';
+  String get authResetNeedsEmail => 'ওপরে ইমেইল লিখে তারপর পাসওয়ার্ড রিসেট চাপুন।';
 
   @override
-  String get passwordTooShort => 'পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।';
+  String get authErrorNotConfirmed =>
+      'আগে ইমেইল নিশ্চিত করুন। আমাদের পাঠানো লিংকটি খুলুন।';
+
+  @override
+  String get authErrorAlreadyRegistered => 'এই ইমেইলে আগেই অ্যাকাউন্ট আছে। সাইন ইন করুন।';
+
+  @override
+  String get authErrorWeakPassword => 'আরও শক্ত পাসওয়ার্ড দিন।';
+
+  @override
+  String get authErrorRateLimited =>
+      'অনেকবার চেষ্টা হয়েছে। এক মিনিট অপেক্ষা করে আবার চেষ্টা করুন।';
+
+  @override
+  String createPasswordShort(int count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    return 'কমপক্ষে ৮টি অক্ষর দিন। এখানে আছে $countStringটি।';
+  }
+
+  @override
+  String checkBody(String email) {
+    return '$email ঠিকানায় একটি নিশ্চিতকরণ লিংক পাঠানো হয়েছে। চালিয়ে যেতে এই ফোনেই লিংকটি খুলুন।';
+  }
+
+  @override
+  String get checkResent => 'নতুন লিংক পাঠানো হয়েছে।';
+
+  @override
+  String get newChat => 'নতুন চ্যাট';
+
+  @override
+  String get modelMenuTitle => 'এআই মডেল';
+
+  @override
+  String modelPillLabel(String name) {
+    return 'মডেল: $name';
+  }
+
+  @override
+  String modelDefault(String maker) {
+    return '$maker · ডিফল্ট';
+  }
+
+  @override
+  String modelLowCost(String maker) {
+    return '$maker · দ্রুত, কম খরচ';
+  }
+
+  @override
+  String modelHighCost(String maker) {
+    return '$maker · বেশি দক্ষ, খরচ বেশি';
+  }
+
+  @override
+  String get settingsProfile => 'প্রোফাইল';
+
+  @override
+  String get settingsEmail => 'ইমেইল';
+
+  @override
+  String get joinedWithCode => 'যে কোডে যোগ দিয়েছেন';
+
+  @override
+  String get documentsRowSub => 'ডকুমেন্ট প্রকাশ ও পর্যালোচনা';
+
+  @override
+  String get displayNameSaved => 'সংরক্ষিত';
+
+  @override
+  String get attachCameraSub => 'রুটিন, রেজিস্ট্রেশন স্লিপ বা নোটিশ';
+
+  @override
+  String get attachGallerySub => 'JPG বা PNG';
+
+  @override
+  String get attachFilesSub => 'PDF';
+
+  @override
+  String get attachLimitBefore => 'প্রতিটি ফাইল সর্বোচ্চ ';
+
+  @override
+  String get attachLimitAfter => '।';
+
+  @override
+  String get sheetHandleLabel => 'বন্ধ করুন';
 }

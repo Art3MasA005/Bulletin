@@ -2,44 +2,23 @@
   "@@locale": "en",
   "@@x-source": "Copy lifted from the handoff prototype's T map (Bulletin.dc.html). Do not paraphrase: the wording is design-reviewed and bilingual by hand.",
   "appTitle": "Bulletin",
-  "tagline": "Your institution's bulletin, made askable — with the page to prove every answer.",
-  "signInAction": "Sign in",
-  "emailLabel": "Email",
-  "passwordLabel": "Password",
   "showPassword": "Show",
   "hidePassword": "Hide",
-  "joinCode": "Join with invite code",
-  "signUpAction": "Create an account",
   "signOutAction": "Sign out",
   "joinTitle": "Join your institution",
-  "joinSubtitle": "Enter the invite code your institution gave you.",
+  "joinSubtitle": "Enter the invite code from your department office.",
   "inviteCodeLabel": "Invite code",
-  "joinAction": "Join",
-  "greetingMorning": "Good morning, {name}",
-  "@greetingMorning": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
+  "joinCodeHint": "GUB-XXXX-00",
+  "@joinCodeHint": {
+    "description": "Placeholder showing the invite code's shape. Keep the Latin letters: codes are always Latin."
   },
-  "greetingAfternoon": "Good afternoon, {name}",
-  "@greetingAfternoon": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "greetingEvening": "Good evening, {name}",
-  "@greetingEvening": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "greetingPlain": "What would you like to know?",
+  "joinCodeHelper": "Letters and numbers only. The letter O and the number 0 are different.",
+  "joinCodeNotFound": "This code doesn't match any institution. Check it with your office.",
+  "joinOptional": "Optional",
+  "joinDisplayNameHelper": "Used in greetings. Leave it empty to use your full name.",
+  "joinAction": "Join institution",
+  "joinBusy": "Joining",
+  "joinOffline": "You're offline. Connect to the internet to join.",
   "publishedDocuments": "{count, plural, one{1 published document} other{{count} published documents}}",
   "@publishedDocuments": {
     "placeholders": {
@@ -48,22 +27,45 @@
       }
     }
   },
-  "tryAsking": "Try asking",
   "suggestExamStart": "When do the final examinations start?",
   "suggestMakeupFee": "How much does a makeup examination cost?",
   "suggestHoliday": "Is the university closed this week?",
   "suggestEvaluation": "When is the teachers' evaluation open?",
   "suggestHostelBn": "ছাত্রাবাসের নিয়ম কী?",
   "suggestExamBn": "পরীক্ষা কবে শুরু হবে?",
-  "askHome": "Ask about your campus documents",
+  "askHome": "Ask about exams, fees, rules…",
+  "askAboutFile": "Ask about this file…",
+  "homeGreeting": "Hi {name}, what do you want to know today?",
+  "@homeGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeGreetingNoName": "What do you want to know today?",
+  "homeInstitutionLine": "Answers come only from {institution} documents.",
+  "@homeInstitutionLine": {
+    "placeholders": {
+      "institution": {
+        "type": "String"
+      }
+    }
+  },
+  "homeInstitutionLineGeneric": "Answers come only from your institution's documents.",
+  "homeAttachRoutine": "Attach routine",
+  "homeMenuLabel": "Settings",
+  "@homeMenuLabel": {
+    "description": "Screen-reader label for the round menu button on Home."
+  },
   "askFollowUp": "Ask a follow-up",
   "sendAction": "Send",
-  "attachTitle": "Attach a file",
-  "attachCamera": "Camera",
-  "attachGallery": "Photo library",
-  "attachFiles": "Files",
+  "attachTitle": "Add to your question",
+  "attachCamera": "Take a photo",
+  "attachGallery": "Choose from gallery",
+  "attachFiles": "Choose a file",
   "attachNote": "Your file is read to answer this question. It isn't added to your institution's documents.",
-  "attachAction": "Attach",
+  "attachAction": "Attach a file",
   "removeAttachment": "Remove",
   "uploading": "Uploading…",
   "openPage": "Open page {page}",
@@ -172,7 +174,7 @@
   "interfaceLanguage": "Interface language",
   "languageEnglish": "English",
   "languageBangla": "বাংলা",
-  "answerLangNote": "Answers always come back in the language you asked in, whichever you pick here.",
+  "answerLangNote": "The app changes instantly. Answers follow the language you ask in.",
   "displayNameLabel": "Display name",
   "institutionLabel": "Institution",
   "questionsToday": "Questions today",
@@ -212,14 +214,129 @@
   "closeAction": "Close",
   "retryLabel": "Try again",
   "backLabel": "Back",
-  "checkYourEmail": "Almost there — check {email} for a confirmation link, then sign in.",
-  "@checkYourEmail": {
+  "splashTagline": "Answers from your campus documents, with the page they came from.",
+  "@splashTagline": {
+    "description": "Under the wordmark on the splash screen. Verbatim from the handoff's bulletin-data.js."
+  },
+  "pandaWavingLabel": "Bulletin panda waving",
+  "@pandaWavingLabel": {
+    "description": "Screen-reader label for the waving panda on the splash and the Welcome screen."
+  },
+  "welcomeTitle": "Answers for every campus question.",
+  "welcomeSubtitle": "Exams, fees and rules from your university's own documents, with the page they came from.",
+  "welcomeLogIn": "Log in",
+  "@welcomeLogIn": {
+    "description": "The Welcome screen's one button; opens sign in."
+  },
+  "authSignInTitle": "Sign in",
+  "authSignInSubtitle": "Use the email your institution gave you.",
+  "authEmailLabel": "Email",
+  "authPasswordLabel": "Password",
+  "authPasswordHelper": "At least 8 characters.",
+  "authEmailInvalid": "This email is incomplete. Add the domain, like name@green.edu.bd.",
+  "authWrongPassword": "This password doesn't match the email. Check it, or reset your password.",
+  "authResetPassword": "Reset password",
+  "authSignInAction": "Sign in",
+  "authSigningIn": "Signing in",
+  "authOr": "Or",
+  "authJoinWithInvite": "Join with invite code",
+  "authNewHere": "New to Bulletin?",
+  "authCreateAccountLink": "Create account",
+  "authTermsPrefix": "By signing in, you agree to our ",
+  "authTermsLink": "Terms of Use",
+  "authTermsSuffix": ".",
+  "createTitle": "Create account",
+  "createSubtitle": "You'll confirm your email before your first question.",
+  "createNameLabel": "Full name",
+  "createAction": "Create account",
+  "createHaveAccount": "Already have an account?",
+  "createSignInLink": "Sign in",
+  "privacyPrefix": "For more information, see our ",
+  "privacyLink": "Privacy policy",
+  "privacySuffix": ".",
+  "checkTitle": "Check your email",
+  "checkHeading": "Your account is created",
+  "checkResend": "Resend link",
+  "checkDifferentEmail": "Use a different email",
+  "authEmailHint": "you@green.edu.bd",
+  "authResetSent": "If an account uses {email}, a reset link is on its way.",
+  "authResetNeedsEmail": "Enter your email above, then tap Reset password.",
+  "authErrorNotConfirmed": "Confirm your email first. Open the link we sent you.",
+  "authErrorAlreadyRegistered": "This email already has an account. Sign in instead.",
+  "authErrorWeakPassword": "Choose a stronger password.",
+  "authErrorRateLimited": "Too many tries. Wait a minute, then try again.",
+  "createPasswordShort": "Use at least 8 characters. This one has {count}.",
+  "checkBody": "We sent a confirmation link to {email}. Open it on this phone to continue.",
+  "checkResent": "A new link is on its way.",
+  "@authResetSent": {
     "placeholders": {
       "email": {
         "type": "String"
       }
     }
   },
-  "emailRequired": "Enter your email address.",
-  "passwordTooShort": "Your password needs at least 6 characters."
+  "@createPasswordShort": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "@checkBody": {
+    "description": "The email is shown in bold; it must appear exactly once.",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "@authSignInTitle": {
+    "description": "Auth strings: verbatim from docs/design/handoff/bulletin-data.js unless noted in TASKS.md."
+  },
+  "newChat": "New chat",
+  "modelMenuTitle": "AI model",
+  "modelPillLabel": "Model: {name}",
+  "@modelPillLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "modelDefault": "{maker} · Default",
+  "@modelDefault": {
+    "placeholders": {
+      "maker": {
+        "type": "String"
+      }
+    }
+  },
+  "modelLowCost": "{maker} · Fast, low cost",
+  "@modelLowCost": {
+    "placeholders": {
+      "maker": {
+        "type": "String"
+      }
+    }
+  },
+  "modelHighCost": "{maker} · Stronger, costs more",
+  "@modelHighCost": {
+    "placeholders": {
+      "maker": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsProfile": "Profile",
+  "settingsEmail": "Email",
+  "joinedWithCode": "Joined with code",
+  "documentsRowSub": "Publish and review documents",
+  "displayNameSaved": "Saved",
+  "attachCameraSub": "Routine, registration slip or notice",
+  "attachGallerySub": "JPG or PNG",
+  "attachFilesSub": "PDF",
+  "attachLimitBefore": "Up to ",
+  "attachLimitAfter": " per file.",
+  "sheetHandleLabel": "Close"
 }

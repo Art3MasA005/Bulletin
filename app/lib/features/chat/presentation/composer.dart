@@ -1,25 +1,30 @@
 /// The composer, and the attach sheet behind its `+`. Handoff spec §4, §5.
 ///
-/// Frosted, because it is fixed chrome — one of the two `BackdropFilter`
-/// layers the blur budget allows on a screen (DESIGN §7). The message list
-/// below it is opaque for the same reason.
+/// Crystal glass (README §1; prototype composer: 16 px from the sides, 28
+/// from the bottom, radius 28, padding 6), because it is fixed chrome — one
+/// of the two `BackdropFilter` layers the blur budget allows on a screen
+/// (DESIGN §7).
 ///
 /// The send button has three states and they are not decoration:
 ///   inert     nothing typed and nothing attached
 ///   waiting   an attachment is still uploading — sending now would ask a
 ///             question about a file the server has not read
-///   ready     accent, with the accent lift
+///   ready     brand, white arrow
 library;
 
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/motion/motion.dart';
+import '../../../core/motion/motion_widgets.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/widgets/bulletin_sheet.dart';
+import '../../../core/widgets/crystal_glass.dart';
+import '../../../core/widgets/line_icons.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../attachments/data/attachment_controller.dart';
 import '../domain/staged_attachment.dart';
@@ -40,56 +45,54 @@ class Composer extends ConsumerWidget {
   final String hint;
   final bool sending;
 
+  static const _radius = BorderRadius.all(Radius.circular(28));
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final attachment = ref.watch(attachmentControllerProvider);
 
-    return SafeArea(
-      top: false,
+    // Crystal glass with its blur: fixed chrome, one of the screen's two
+    // BackdropFilters (CLAUDE.md #11). Placement is the parent's job.
+    return CrystalGlass(
+      borderRadius: _radius,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          Sizes.screenPadding,
-          Space.sm,
-          Sizes.screenPadding,
-          Space.md,
-        ),
-        child: ClipRRect(
-          borderRadius: Radii.composerAll,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: BlurBudget.sigma, sigmaY: BlurBudget.sigma),
-            child: Container(
-              decoration: BoxDecoration(
-                color: BulletinColors.frostedComposer,
-                borderRadius: Radii.composerAll,
-                border: Border.all(color: BulletinColors.hairline),
-                boxShadow: Lifts.composer,
+        padding: const EdgeInsets.all(6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 6,
+          children: [
+            if (attachment.staged case final staged?)
+              _AttachmentPreview(
+                staged: staged,
+                onRemove: () => ref.read(attachmentControllerProvider.notifier).clear(),
               ),
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (attachment.staged case final staged?) ...[
-                    _AttachmentPreview(
-                      staged: staged,
-                      onRemove: () =>
-                          ref.read(attachmentControllerProvider.notifier).clear(),
-                    ),
-                    const SizedBox(height: Space.md),
-                  ],
-                  TextField(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              spacing: 6,
+              children: [
+                _AttachButton(
+                  semanticLabel: l.attachAction,
+                  onTap: sending ? null : () => openAttachFlow(context, ref),
+                ),
+                Expanded(
+                  child: TextField(
                     controller: controller,
                     focusNode: focusNode,
                     minLines: 1,
-                    maxLines: 5,
+                    // 124 px at most, as in the prototype: four lines.
+                    maxLines: 4,
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => onSend(),
-                    onChanged: (_) => (context as Element).markNeedsBuild(),
                     style: BulletinText.messageBody,
+                    cursorColor: BulletinColors.brandStrong,
                     decoration: InputDecoration(
                       hintText: hint,
+                      // One line: a long Bangla hint must not make the bar taller.
+                      hintMaxLines: 1,
                       hintStyle: BulletinText.resolve(
-                        BulletinText.messageBody.copyWith(color: BulletinColors.inkFaint),
+                        BulletinText.messageBody.copyWith(color: BulletinColors.muted),
                         hint,
                       ),
                       border: InputBorder.none,
@@ -97,176 +100,261 @@ class Composer extends ConsumerWidget {
                       focusedBorder: InputBorder.none,
                       filled: false,
                       isDense: true,
-                      contentPadding: EdgeInsets.zero,
+                      // 11 + 25.6 + 11: a 48 px line, level with the buttons.
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 2,
+                        vertical: 11,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: Space.md),
-                  Row(
-                    children: [
-                      _CircleButton(
-                        icon: Icons.add,
-                        semanticLabel: l.attachAction,
-                        onTap: sending ? null : () => _openAttachSheet(context, ref),
-                      ),
-                      const Spacer(),
-                      ValueListenableBuilder<TextEditingValue>(
-                        valueListenable: controller,
-                        builder: (context, value, _) {
-                          final hasText = value.text.trim().isNotEmpty;
-                          final blocked = sending || !attachment.canSend;
-                          return _SendButton(
-                            enabled: hasText && !blocked,
-                            waiting: attachment.staged?.uploading ?? false,
-                            label: l.sendAction,
-                            onTap: onSend,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: controller,
+                  builder: (context, value, _) {
+                    final hasText = value.text.trim().isNotEmpty;
+                    final blocked = sending || !attachment.canSend;
+                    return _SendButton(
+                      enabled: hasText && !blocked,
+                      waiting: attachment.staged?.uploading ?? false,
+                      label: l.sendAction,
+                      onTap: onSend,
+                    );
+                  },
+                ),
+              ],
             ),
-          ),
+          ],
         ),
       ),
     );
   }
+}
 
-  Future<void> _openAttachSheet(BuildContext context, WidgetRef ref) async {
-    final source = await showModalBottomSheet<_AttachSource>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: BulletinColors.scrim,
-      builder: (context) => const _AttachSheet(),
-    );
-    if (source == null) return;
+/// Opens the attach sheet, picks the file and stages it. Used by the
+/// composer's attach button and Home's "Attach routine" chip.
+Future<void> openAttachFlow(BuildContext context, WidgetRef ref) async {
+  final source = await showBulletinSheet<_AttachSource>(
+    context,
+    builder: (context) => const _AttachSheet(),
+  );
+  if (source == null) return;
 
-    final file = await _pick(source);
-    if (file != null) {
-      await ref.read(attachmentControllerProvider.notifier).stage(file);
-    }
+  final file = await _pick(source);
+  if (file != null) {
+    await ref.read(attachmentControllerProvider.notifier).stage(file);
   }
+}
 
-  Future<File?> _pick(_AttachSource source) async {
-    switch (source) {
-      case _AttachSource.camera:
-        final shot = await ImagePicker().pickImage(source: ImageSource.camera);
-        return shot == null ? null : File(shot.path);
-      case _AttachSource.gallery:
-        final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-        return picked == null ? null : File(picked.path);
-      case _AttachSource.files:
-        final result = await FilePicker.platform.pickFiles(
-          type: FileType.custom,
-          allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
-        );
-        final path = result?.files.single.path;
-        return path == null ? null : File(path);
-    }
+Future<File?> _pick(_AttachSource source) async {
+  switch (source) {
+    case _AttachSource.camera:
+      final shot = await ImagePicker().pickImage(source: ImageSource.camera);
+      return shot == null ? null : File(shot.path);
+    case _AttachSource.gallery:
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+      return picked == null ? null : File(picked.path);
+    case _AttachSource.files:
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
+      );
+      final path = result?.files.single.path;
+      return path == null ? null : File(path);
   }
 }
 
 enum _AttachSource { camera, gallery, files }
 
-/// The attach sheet. The privacy line is required by PRD §8.4 and is the
-/// reason this is a sheet rather than a menu: the user has to see it.
+/// The attach sheet (README §2.8; prototype `sh.attach`): "Add to your
+/// question", then camera, gallery and file rows fading up in turn (120,
+/// 160, 200 ms), and the note (240). The note carries the size limit and
+/// the privacy line PRD §8.4 requires: the user has to see that the file
+/// answers this question only and joins no institution documents.
 class _AttachSheet extends StatelessWidget {
   const _AttachSheet();
+
+  /// PRD §8.5; the attachment controller enforces it.
+  static const _limit = '10 MB';
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    return Container(
-      decoration: const BoxDecoration(
-        color: BulletinColors.paper,
-        borderRadius: Radii.sheetTop,
-      ),
-      padding: const EdgeInsets.fromLTRB(
-        Sizes.sheetPadding,
-        Sizes.sheetPadding,
-        Sizes.sheetPadding,
-        Space.sm,
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+    void pick(_AttachSource source) => Navigator.pop(context, source);
+    final note = BulletinText.resolve(BulletinText.fieldHelper, l.attachNote);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: Space.lg,
+      children: [
+        Semantics(
+          header: true,
+          child: Text(
+            l.attachTitle,
+            style: BulletinText.resolve(BulletinText.screenTitle, l.attachTitle),
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 4,
           children: [
-            Text(l.attachTitle, style: BulletinText.sheetTitle),
-            const SizedBox(height: Space.sm),
-            Text(
-              l.attachNote,
-              style: BulletinText.resolve(
-                BulletinText.meta.copyWith(fontSize: 13, height: 1.6),
-                l.attachNote,
-              ),
+            _SourceRow(
+              delay: 120,
+              glyph: LineIcons.camera,
+              title: l.attachCamera,
+              detail: l.attachCameraSub,
+              onTap: () => pick(_AttachSource.camera),
             ),
-            const SizedBox(height: Space.lg),
-            _SheetRow(
-              icon: Icons.photo_camera_outlined,
-              label: l.attachCamera,
-              onTap: () => Navigator.pop(context, _AttachSource.camera),
+            _SourceRow(
+              delay: 160,
+              glyph: LineIcons.image,
+              title: l.attachGallery,
+              detail: l.attachGallerySub,
+              onTap: () => pick(_AttachSource.gallery),
             ),
-            _SheetRow(
-              icon: Icons.photo_library_outlined,
-              label: l.attachGallery,
-              onTap: () => Navigator.pop(context, _AttachSource.gallery),
-            ),
-            _SheetRow(
-              icon: Icons.folder_outlined,
-              label: l.attachFiles,
-              onTap: () => Navigator.pop(context, _AttachSource.files),
-            ),
-            _SheetRow(
-              label: l.cancelAction,
-              muted: true,
-              onTap: () => Navigator.pop(context),
+            _SourceRow(
+              delay: 200,
+              glyph: LineIcons.file,
+              title: l.attachFiles,
+              detail: l.attachFilesSub,
+              onTap: () => pick(_AttachSource.files),
             ),
           ],
         ),
-      ),
+        FadeUp(
+          delay: const Duration(milliseconds: 240),
+          duration: MotionDurations.stepIn,
+          child: Text.rich(
+            TextSpan(
+              style: note,
+              children: [
+                TextSpan(text: l.attachLimitBefore),
+                const TextSpan(
+                  text: _limit,
+                  style: TextStyle(fontFamily: Fonts.mono),
+                ),
+                TextSpan(text: '${l.attachLimitAfter} ${l.attachNote}'),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _SheetRow extends StatelessWidget {
-  const _SheetRow({
-    required this.label,
+/// One source: a 48 px peach tile with its icon, the name 16/500, a detail
+/// line 12 muted, 64 px tall. Its pressed fill reaches 12 px past the
+/// content on either side, as the prototype's negative margin does.
+class _SourceRow extends StatefulWidget {
+  const _SourceRow({
+    required this.delay,
+    required this.glyph,
+    required this.title,
+    required this.detail,
     required this.onTap,
-    this.icon,
-    this.muted = false,
   });
 
-  final String label;
+  final int delay;
+  final LineGlyph glyph;
+  final String title;
+  final String detail;
   final VoidCallback onTap;
-  final IconData? icon;
-  final bool muted;
+
+  @override
+  State<_SourceRow> createState() => _SourceRowState();
+}
+
+class _SourceRowState extends State<_SourceRow> {
+  bool _down = false;
+
+  static const _radius = BorderRadius.all(Radius.circular(20));
+  static const _tile = BorderRadius.all(Radius.circular(12));
+  static const _bleed = 12.0;
+
+  void _press(bool down) => setState(() => _down = down);
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: Radii.chipAll,
-      child: SizedBox(
-        height: 56,
-        child: Row(
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 20, color: BulletinColors.ink),
-              const SizedBox(width: Space.md),
-            ],
-            Text(
-              label,
-              style: BulletinText.resolve(
-                BulletinText.messageBody.copyWith(
-                  color: muted ? BulletinColors.inkMuted : BulletinColors.ink,
-                ),
-                label,
+    final row = Row(
+      spacing: 14,
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: const BoxDecoration(
+            color: BulletinColors.peach,
+            borderRadius: _tile,
+          ),
+          alignment: Alignment.center,
+          child: LineIcon(widget.glyph, color: BulletinColors.brandStrong, size: 22),
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.title,
+                style: BulletinText.resolve(BulletinText.sourceRowTitle, widget.title),
               ),
+              Text(
+                widget.detail,
+                style: BulletinText.resolve(
+                  BulletinText.pillCaption,
+                  widget.detail,
+                ).copyWith(height: 1.45),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    return FadeUp(
+      delay: Duration(milliseconds: widget.delay),
+      duration: MotionDurations.stepIn,
+      child: Semantics(
+        button: true,
+        label: '${widget.title}, ${widget.detail}',
+        excludeSemantics: true,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          onTapDown: (_) => _press(true),
+          onTapUp: (_) => _press(false),
+          onTapCancel: () => _press(false),
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedScale(
+            scale: _down ? 0.98 : 1,
+            duration: MotionDurations.micro,
+            curve: MotionCurves.spring,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  left: -_bleed,
+                  right: -_bleed,
+                  top: 0,
+                  bottom: 0,
+                  child: AnimatedContainer(
+                    duration: MotionDurations.micro,
+                    decoration: BoxDecoration(
+                      borderRadius: _radius,
+                      color: _down
+                          ? BulletinColors.chipFill
+                          : BulletinColors.chipFill.withValues(alpha: 0),
+                    ),
+                  ),
+                ),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 64),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: row,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -364,14 +452,10 @@ class _Thumbnail extends StatelessWidget {
   }
 }
 
-class _CircleButton extends StatelessWidget {
-  const _CircleButton({
-    required this.icon,
-    required this.semanticLabel,
-    required this.onTap,
-  });
+/// 48 px, a radial white → peach glow, the paperclip in brand.
+class _AttachButton extends StatelessWidget {
+  const _AttachButton({required this.semanticLabel, required this.onTap});
 
-  final IconData icon;
   final String semanticLabel;
   final VoidCallback? onTap;
 
@@ -379,22 +463,34 @@ class _CircleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
+      enabled: onTap != null,
       label: semanticLabel,
-      child: SizedBox(
-        width: Sizes.minTouchTarget,
-        height: Sizes.minTouchTarget,
-        child: Center(
-          child: Material(
-            color: BulletinColors.chipFillStrong,
-            shape: const CircleBorder(),
-            child: InkWell(
-              onTap: onTap,
-              customBorder: const CircleBorder(),
-              child: SizedBox(
-                width: 40,
-                height: 40,
-                child: Icon(icon, size: 20, color: BulletinColors.ink),
+      excludeSemantics: true,
+      child: PressScale.icon(
+        enabled: onTap != null,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: Sizes.minTouchTarget,
+            height: Sizes.minTouchTarget,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              // CSS `radial-gradient(circle, …)` ends at the farthest corner.
+              gradient: RadialGradient(
+                radius: 0.7071,
+                stops: [0, 0.6, 1],
+                colors: [
+                  BulletinColors.white,
+                  BulletinColors.peach,
+                  BulletinColors.attachGlow,
+                ],
               ),
+            ),
+            alignment: Alignment.center,
+            child: LineIcon(
+              LineIcons.paperclip,
+              color: BulletinColors.brandStrong,
+              strokeWidth: 1.9,
             ),
           ),
         ),
@@ -403,6 +499,8 @@ class _CircleButton extends StatelessWidget {
   }
 }
 
+/// 48 px. Brand with a white arrow when there is something to send; peach
+/// with a grey arrow when not; a spinner while an attachment uploads.
 class _SendButton extends StatelessWidget {
   const _SendButton({
     required this.enabled,
@@ -418,44 +516,35 @@ class _SendButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ink = enabled ? BulletinColors.white : BulletinColors.sendInert;
     return Semantics(
       button: true,
       enabled: enabled,
       label: label,
-      child: SizedBox(
-        width: Sizes.minTouchTarget,
-        height: Sizes.minTouchTarget,
-        child: Center(
-          child: DecoratedBox(
+      excludeSemantics: true,
+      child: PressScale.icon(
+        enabled: enabled,
+        child: GestureDetector(
+          onTap: enabled ? onTap : null,
+          child: AnimatedContainer(
+            duration: MotionDurations.micro,
+            curve: MotionCurves.out,
+            width: Sizes.minTouchTarget,
+            height: Sizes.minTouchTarget,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              boxShadow: enabled ? Lifts.accentButton : const [],
+              color: enabled ? BulletinColors.brandStrong : BulletinColors.peach,
             ),
-            child: Material(
-              color: enabled ? BulletinColors.accent : BulletinColors.inert,
-              shape: const CircleBorder(),
-              child: InkWell(
-                onTap: enabled ? onTap : null,
-                customBorder: const CircleBorder(),
-                child: SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: waiting
-                      ? const Padding(
-                          padding: EdgeInsets.all(11),
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: BulletinColors.paper,
-                          ),
-                        )
-                      : const Icon(
-                          Icons.arrow_upward,
-                          size: 20,
-                          color: BulletinColors.paper,
-                        ),
-                ),
-              ),
-            ),
+            alignment: Alignment.center,
+            child: waiting
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: BulletinColors.sendInert,
+                    ),
+                  )
+                : LineIcon(LineIcons.arrowUp, color: ink, strokeWidth: 2),
           ),
         ),
       ),

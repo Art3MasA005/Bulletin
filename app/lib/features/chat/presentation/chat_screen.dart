@@ -1,30 +1,42 @@
-/// The chat screen. DESIGN §6.2, §6.3.
+/// Home and the chat (handoff README §2.6–2.7; prototype `L.main`).
 ///
-/// A reverse `ListView`: new messages appear at the bottom without a scroll
-/// animation to fight, and the list holds its position when the keyboard
-/// opens. `addAutomaticKeepAlives: false` because a long thread of settled
-/// messages does not need to stay alive off-screen.
+/// One screen, as in the prototype: before the first question it shows Home
+/// ([HomeView]: orb, greeting, suggestions); after it, the thread. Both sit
+/// under the same floating chrome: the top bar at y = 56 and the glass
+/// composer 16 px from the sides and 28 from the bottom. Those two glass
+/// surfaces are the screen's two BackdropFilters (CLAUDE.md #11); nothing
+/// else here blurs.
 ///
-/// The composer below it is the one frosted surface here; the app bar stays a
-/// plain translucent one. The blur budget (CLAUDE.md #11, DESIGN §7) is why the app bar here is a
-/// plain translucent surface rather than a frosted one: the frosted bar is
-/// spent on the home screen, and a `BackdropFilter` above a scrolling list
-/// repaints every frame the list moves.
+/// The thread is a reverse `ListView`: new messages appear at the bottom
+/// without a scroll animation to fight, and the list holds its position when
+/// the keyboard opens. `addAutomaticKeepAlives: false` because a long thread
+/// of settled messages does not need to stay alive off-screen. The thread's
+/// own restyle (bubbles, sources) is a later step (TASKS.md, Chat).
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/motion/motion.dart';
+import '../../../core/net/api_client.dart' show Membership;
 import '../../../core/net/result.dart';
-import '../../../core/theme/theme.dart';
+import '../../../core/providers.dart';
+import '../../../core/routing/push_route.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../attachments/data/attachment_controller.dart';
 import '../../attachments/presentation/confirm_sheet.dart';
+import '../../auth/data/auth_repository.dart';
+import '../../settings/presentation/settings_screen.dart';
 import '../data/chat_controller.dart';
+import '../data/model_picker.dart';
 import '../domain/citation.dart';
+import '../domain/home_greeting.dart';
 import 'composer.dart';
+import 'home/home_top_bar.dart';
+import 'home/home_view.dart';
 import 'message_bubble.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -32,7 +44,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 
   final String? conversationId;
 
-  /// A suggested question tapped on the home screen, sent on first frame.
+  /// A suggested question tapped elsewhere, sent on first frame.
   final String? openingQuestion;
 
   @override
@@ -43,6 +55,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _input = TextEditingController();
   final _scroll = ScrollController();
   final _focus = FocusNode();
+
+  /// The prototype's chrome, in its 390 x 844 frame.
+  static const _chromeTop = 56.0;
+  static const _barHeight = 48.0;
+  static const _composerBottom = 28.0;
+  static const _composerHeight = 60.0;
+
+  /// What an attachment row adds to the composer.
+  static const _attachmentRow = 64.0;
 
   @override
   void initState() {
@@ -101,7 +122,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     unawaited(
       ref
           .read(chatControllerProvider(widget.conversationId).notifier)
-          .send(question, attachmentId: attachment.staged?.attachmentId),
+          .send(
+            question,
+            attachmentId: attachment.staged?.attachmentId,
+            model: ref.read(currentModelProvider)?.key,
+          ),
     );
     // The attachment belongs to the question that carried it; the next one
     // starts from an empty composer.
@@ -109,7 +134,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     // The list is reversed, so "scroll to newest" is offset zero.
     if (_scroll.hasClients) {
-      _scroll.animateTo(0, duration: Motion.sheet, curve: Curves.easeOut);
+      _scroll.animateTo(0, duration: MotionDurations.section, curve: MotionCurves.out);
     }
   }
 
@@ -121,29 +146,77 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ).showSnackBar(SnackBar(content: Text(L.of(context).openPage(citation.pageNo))));
   }
 
+  /// Back to Home: the thread is dropped (it is saved on the server) and the
+  /// composer starts empty.
+  void _newChat() {
+    ref.invalidate(chatControllerProvider(widget.conversationId));
+    ref.read(attachmentControllerProvider.notifier).clear();
+    _input.clear();
+    _focus.unfocus();
+  }
+
+  void _openSettings() {
+    _focus.unfocus();
+    unawaited(
+      Navigator.of(
+        context,
+      ).push(PushRoute<void>.of(context, (_) => const SettingsScreen())),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final state = ref.watch(chatControllerProvider(widget.conversationId));
+    final hasFile = ref.watch(
+      attachmentControllerProvider.select((a) => a.staged != null),
+    );
+    final membership = ref.watch(membershipProvider).valueOrNull;
     final messages = state.messages.reversed.toList(growable: false);
+
+    // The chrome keeps the prototype's distances, but never closer than
+    // 8 px to the real status bar, nor 12 px to the navigation bar; with the
+    // keyboard up the composer sits 12 px above it.
+    final insets = MediaQuery.viewPaddingOf(context);
+    final keyboardUp = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final top = math.max(_chromeTop, insets.top + 8);
+    final bottom = keyboardUp ? 12.0 : math.max(_composerBottom, insets.bottom + 12);
+    final composerTop = bottom + _composerHeight + (hasFile ? _attachmentRow : 0);
+
+    final hint = hasFile
+        ? l.askAboutFile
+        : (messages.isEmpty ? l.askHome : l.askFollowUp);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(title: Text(l.appTitle)),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
+          Positioned.fill(
             child: messages.isEmpty
-                ? _EmptyState(onPick: (q) => unawaited(_send(q)))
+                ? Padding(
+                    padding: EdgeInsets.only(
+                      top: top + _barHeight + 8,
+                      bottom: composerTop + 20,
+                    ),
+                    child: HomeView(
+                      greeting: _greeting(l, membership),
+                      institutionLine: switch (membership?.institutionName) {
+                        final name? => l.homeInstitutionLine(name),
+                        null => l.homeInstitutionLineGeneric,
+                      },
+                      onAsk: (q) => unawaited(_send(q)),
+                      onAttach: () => unawaited(openAttachFlow(context, ref)),
+                    ),
+                  )
                 : ListView.builder(
                     controller: _scroll,
                     reverse: true,
                     addAutomaticKeepAlives: false,
-                    padding: const EdgeInsets.fromLTRB(
-                      Space.lg,
-                      Space.lg,
-                      Space.lg,
-                      Space.sm,
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      top + _barHeight + 20,
+                      20,
+                      composerTop + 40,
                     ),
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
@@ -151,7 +224,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       return MessageBubble(
                         key: ValueKey(message.id),
                         message: message,
-                        role: 'student',
+                        role: membership?.role ?? 'student',
                         onOpenSource: _openSource,
                         onRetry: message.hasFailed
                             ? () => ref
@@ -166,77 +239,38 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     },
                   ),
           ),
-          Composer(
-            controller: _input,
-            focusNode: _focus,
-            sending: state.sending,
-            hint: state.messages.isEmpty ? l.askHome : l.askFollowUp,
-            onSend: () => unawaited(_send()),
+          Positioned(
+            top: top,
+            left: 16,
+            right: 16,
+            child: HomeTopBar(
+              inThread: messages.isNotEmpty,
+              onNewChat: state.sending ? null : _newChat,
+              onMenu: _openSettings,
+            ),
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: bottom,
+            child: Composer(
+              controller: _input,
+              focusNode: _focus,
+              sending: state.sending,
+              hint: hint,
+              onSend: () => unawaited(_send()),
+            ),
           ),
         ],
       ),
     );
   }
-}
 
-/// The home empty state: a greeting and three suggested questions (DESIGN §6.1).
-///
-/// The suggestions are not filler. A student who has never used the app does
-/// not know what it can answer, and three concrete questions teach that faster
-/// than any onboarding copy.
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.onPick});
-
-  final void Function(String question) onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = L.of(context);
-    final suggestions = [l.suggestExamStart, l.suggestMakeupFee, l.suggestHoliday];
-
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(Space.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l.greetingPlain, style: BulletinText.screenTitle),
-            const SizedBox(height: Space.xl),
-            Text(l.tryAsking, style: BulletinText.sectionLabel),
-            const SizedBox(height: Space.md),
-            for (final suggestion in suggestions) ...[
-              _SuggestionChip(text: suggestion, onTap: () => onPick(suggestion)),
-              const SizedBox(height: Space.sm),
-            ],
-          ],
-        ),
-      ),
+  String _greeting(L l, Membership? membership) {
+    final name = greetingName(
+      displayName: membership?.displayName,
+      fullName: ref.read(authRepositoryProvider).fullName,
     );
-  }
-}
-
-class _SuggestionChip extends StatelessWidget {
-  const _SuggestionChip({required this.text, required this.onTap});
-
-  final String text;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: BulletinColors.paper,
-      borderRadius: Radii.chipAll,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: Radii.chipAll,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: Sizes.minTouchTarget),
-          padding: const EdgeInsets.symmetric(horizontal: Space.lg, vertical: Space.md),
-          alignment: Alignment.centerLeft,
-          child: Text(text, style: BulletinText.resolve(BulletinText.messageBody, text)),
-        ),
-      ),
-    );
+    return name == null ? l.homeGreetingNoName : l.homeGreeting(name);
   }
 }

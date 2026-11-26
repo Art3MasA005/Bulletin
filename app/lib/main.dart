@@ -1,19 +1,26 @@
 /// Bulletin — ask your institution's documents, in English or Bangla.
 ///
-/// The root does three things and nothing else: initialise Supabase, wrap the
-/// app in the ambient gradient, and route on auth state. Screens do the rest.
+/// The root does four things and nothing else: initialise Supabase, wrap the
+/// app in the ambient background, put the splash above it, and route on auth
+/// state. Screens do the rest.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/config.dart';
+import 'core/prefs/preferences.dart';
 import 'core/providers.dart';
+import 'core/routing/app_phase.dart';
+import 'core/routing/phase_switcher.dart';
 import 'core/theme/theme.dart';
-import 'features/auth/presentation/sign_in_screen.dart';
+import 'features/auth/presentation/auth_flow.dart';
+import 'features/auth/presentation/join/join_screen.dart';
 import 'features/chat/presentation/chat_screen.dart';
+import 'features/splash/presentation/launch_gate.dart';
 import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
@@ -28,7 +35,21 @@ Future<void> main() async {
     );
   }
 
-  runApp(const ProviderScope(child: BulletinApp()));
+  // A preferences store that fails to load costs only the remembered
+  // language and model, not the launch.
+  SharedPreferences? prefs;
+  try {
+    prefs = await SharedPreferences.getInstance();
+  } on Exception {
+    prefs = null;
+  }
+
+  runApp(
+    ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      child: const BulletinApp(),
+    ),
+  );
 }
 
 class BulletinApp extends ConsumerWidget {
@@ -50,19 +71,19 @@ class BulletinApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: L.supportedLocales,
-      // The gradient sits above the Navigator so it never rebuilds on a route
-      // change and never scrolls (DESIGN §3).
-      builder: (context, child) => AmbientBackground(child: child ?? const SizedBox()),
+      // The background sits above the Navigator so it never rebuilds on a
+      // route change and never scrolls (DESIGN §3). The splash sits above
+      // both, so the app is built and restoring its session while the splash
+      // plays.
+      builder: (context, child) =>
+          AmbientBackground(child: LaunchGate(child: child ?? const SizedBox())),
       home: const _Root(),
     );
   }
 }
 
-/// Decides which screen the app opens on.
-///
-/// Three states, and the middle one is easy to forget: signed out, signed in
-/// but not a member of any institution (PRD §4 — members join by invite code),
-/// and signed in with a membership.
+/// Decides which screen shows ([appPhaseFor]) and hands over between them
+/// ([PhaseSwitcher]: into Home, the old layer fades and scales away on top).
 class _Root extends ConsumerWidget {
   const _Root();
 
@@ -70,14 +91,18 @@ class _Root extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (!AppConfig.isConfigured) return const _NotConfigured();
 
-    final signedIn = ref.watch(isSignedInProvider);
-    if (!signedIn) return const SignInScreen();
-
-    final membership = ref.watch(membershipProvider);
-    return membership.when(
-      loading: () => const _Loading(),
-      error: (_, __) => const JoinScreen(),
-      data: (value) => value == null ? const JoinScreen() : const ChatScreen(),
+    final phase = appPhaseFor(
+      signedIn: ref.watch(isSignedInProvider),
+      membership: ref.watch(membershipProvider),
+    );
+    return PhaseSwitcher(
+      phase: phase,
+      child: switch (phase) {
+        AppPhase.auth => const AuthFlow(),
+        AppPhase.loading => const _Loading(),
+        AppPhase.join => const JoinScreen(),
+        AppPhase.main => const ChatScreen(),
+      },
     );
   }
 }

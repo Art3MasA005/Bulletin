@@ -211,20 +211,20 @@ def test_me_carries_the_names_home_greets_with(client_for) -> None:
     client, _ = client_for(
         {
             "profile": (USER_ID, INSTITUTION_ID, "student", "s@green.edu.bd"),
-            "me_details": ("Nusrat", "Green University of Bangladesh", "GUB-7Q4K-20"),
+            "me_details": ("Nusrat", "Green University of Bangladesh", "GUB-TEST-00"),
         }
     )
     body = client.get("/me", headers=auth()).json()
     assert body["display_name"] == "Nusrat"
     assert body["institution_name"] == "Green University of Bangladesh"
-    assert body["invite_code"] == "GUB-7Q4K-20"
+    assert body["invite_code"] == "GUB-TEST-00"
 
 
 def test_a_member_renames_only_themselves(client_for) -> None:
     client, pool = client_for(
         {
             "profile": (USER_ID, INSTITUTION_ID, "student", "s@green.edu.bd"),
-            "me_details": ("Nusrat", "Green University of Bangladesh", "GUB-7Q4K-20"),
+            "me_details": ("Nusrat", "Green University of Bangladesh", "GUB-TEST-00"),
         }
     )
     response = client.patch("/me", json={"display_name": "  Nusrat J  "}, headers=auth())
@@ -237,7 +237,7 @@ def test_a_blank_display_name_clears_it(client_for) -> None:
     client, pool = client_for(
         {
             "profile": (USER_ID, INSTITUTION_ID, "student", "s@green.edu.bd"),
-            "me_details": ("Nusrat", "Green University of Bangladesh", "GUB-7Q4K-20"),
+            "me_details": ("Nusrat", "Green University of Bangladesh", "GUB-TEST-00"),
         }
     )
     client.patch("/me", json={"display_name": "   "}, headers=auth())
