@@ -16,7 +16,6 @@ FastAPI + pgvector backend, Flutter client, measured against a 62-question gold 
     <td align="center"><img src="docs/screenshots/home.png" alt="Home: the model pill, the glowing orb, and a greeting" width="170"><br><sub>Home</sub></td>
     <td align="center"><img src="docs/screenshots/model-menu.png" alt="The model menu with five models" width="170"><br><sub>Pick a model</sub></td>
     <td align="center"><img src="docs/screenshots/chat-answer.png" alt="An answer with numbered citations and source cards" width="170"><br><sub>Cited answer</sub></td>
-    <td align="center"><img src="docs/screenshots/settings.png" alt="Settings: language, profile and institution" width="170"><br><sub>Settings</sub></td>
   </tr>
 </table>
 
